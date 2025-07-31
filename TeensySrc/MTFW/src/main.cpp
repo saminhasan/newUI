@@ -4,7 +4,7 @@
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
-  timer.begin(TimerCallback, 1000); // 1000us = 1ms
+  timer.begin(TimerCallback, 1000); // 1000us = 1  ms
   while(!Serial.dtr())
     ;
 }
