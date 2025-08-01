@@ -1,12 +1,13 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
 from multiprocessing import Process, Pipe, Queue
-from threading import Thread
+from threading import Thread, Event
 from appModel import FSM
 import time
 from UI.custom_tabview import CustomTabview
 from UI.custom_combobox import CustomComboBox
 from serial_process import serialServer, portList
+from queue import Empty
 
 WIDTH: int = 640
 HEIGHT: int = 480
@@ -27,11 +28,8 @@ class App(ctk.CTk):
         self.comProcess = Process(target=self.comServer.run, name="SerialServerProcess")
         self.bind("<<ReceivedResponse>>", self.responseHandler)
         self.resT = Thread(target=self.rCB, daemon=True)
-
-        self.bind("<<ReceivedData>>", self.dataHandler)
-        self.lisT = Thread(target=self.listener, daemon=True)
         self.response: dict = {}
-        self.data = []
+        self.after(100, self.dataHandler)
 
     def create_widgets(self):
         self.title("UI")
@@ -125,27 +123,14 @@ class App(ctk.CTk):
             self.fileHandler()
 
     def rCB(self):
-        print("Response handler started.")
+        # print("Response handler started.")
         while self.running:
             self.response = self.parent_conn.recv()
             if self.response.get("event", None) == "quit":
                 break
             else:
                 self.after(0, lambda: self.event_generate("<<ReceivedResponse>>", when="tail"))
-        print("Response handler Stopped.")
-
-    def listener(self):  # fix this for quit checking, also maybe reokace kist with nother q or dq
-        print("Data handler started.")
-        while self.running:
-            self.data = self.recvQ.get()
-            # print(f"{self.data=}")
-            if bool([print(d) for d in self.data if d.get("event") == "quit"]):
-                print("Quit event received, stopping data handler.")
-                self.recvQ.close()
-                break
-            else:
-                self.after(0, lambda: self.event_generate("<<ReceivedData>>", when="tail"))
-        print("Data handler Stopped.")
+        # print("Response handler Stopped.")
 
     def eventHandler(self, event_name, **kwargs):
         eventDict = {"event": event_name, "seq": self.seq}
@@ -155,22 +140,28 @@ class App(ctk.CTk):
         self.seq += 1
 
     def dataHandler(self, VirtualEvent=None):  # add tags for info warning error and stuff
-        # print(f"Received data: {self.data}")
-        if self.data is None:
-            return
-        self.logTerminal.configure(state="normal")
-        # print(f"Data: {self.data}")
         # assuming self.data is now a list of dicts
-        infos = [d.get("INFO", None) for d in self.data if d.get("INFO", None) is not None]
+        if not self.running:
+            return
+        try:
+            data = self.recvQ.get(block=False)
+            print(f"Data received: {data}")
+        except Empty:
+
+            self.after(100, self.dataHandler)
+            return
+        infos = [d.get("INFO", None) for d in data if d.get("INFO", None) is not None]
 
         if infos:
             data_str = "".join(str(x) for x in infos)
+            self.logTerminal.configure(state="normal")
             self.logTerminal.insert("end", data_str)
-        self.logTerminal.configure(state="disabled")
+            self.logTerminal.configure(state="disabled")
         _, last = self.logTerminal.yview()
         if last > 0.9:
             self.logTerminal.yview("end")
-        self.data = []
+
+        self.after(100, self.dataHandler)
 
     def responseHandler(self, VirtualEvent=None):
         event = self.response.get("event", None)
@@ -200,29 +191,21 @@ class App(ctk.CTk):
     def run(self):
         self.comProcess.start()
         self.resT.start()
-        self.lisT.start()
         self.mainloop()
 
     def on_closing(self):
         self.running = False
         self.eventHandler("quit")
-        if self.resT.is_alive():
-            self.resT.join()
-        if self.lisT.is_alive():
-            self.lisT.join()
         self.comProcess.join()
         self.parent_conn.close()
         self.recvQ.close()
         self.recvQ.join_thread()
+        if self.resT.is_alive():
+            self.resT.join()
         self.destroy()
 
 
 if __name__ == "__main__":
-    # # This is required for multiprocessing on Windows
-    # import multiprocessing
-
-    # multiprocessing.freeze_support()
-
     app = App()
     app.run()
     print("Done.")

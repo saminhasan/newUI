@@ -32,5 +32,6 @@ if __name__ == "__main__":
     running = False  # Stop the thread
     event.clear()
     print(f"OUT:{running=}, {event.is_set()=}")
+    read.set()
     thread.join()  # Wait for the thread to finish
     print("Thread has finished execution.")

@@ -39,10 +39,10 @@ class serialServer:
             self.port.open()
             if self._listen_evt:
                 self._listen_evt.set()
-            print(f"Connected to port: {self.portStr}")
+            # #print(f"Connected to port: {self.portStr}")
             return True
         except Exception as e:
-            print(f"Error opening port: {e}")
+            # print(f"Error opening port: {e}")
             return False
 
     def disconnect(self):
@@ -53,20 +53,20 @@ class serialServer:
         try:
             self.port.close()
         except Exception as e:
-            print(f"Error closing port: {e}")
+            # print(f"Error closing port: {e}")
             return False
-        print(f"Disconnected from port: {self.portStr}")
+        # #print(f"Disconnected from port: {self.portStr}")
         return True
 
     def sendRequest(self):
-        print("Sender thread started.")
+        # print("Sender thread started.")
         while self.running:
             request = self.conn.recv()
             status = False
             if request["event"] == "portSelect":
                 self.portStr = request["port"]
                 self.port.port = self.portStr
-                print(f"{self.portStr=}")
+                # print(f"{self.portStr=}")
             if request["event"] == "connect":
                 status = self.connect()
                 if status and self._listen_evt:
@@ -78,31 +78,28 @@ class serialServer:
 
             if request["event"] == "upload":
                 self.filePath = request["filePath"]
-                print(f"{self.filePath=}")
+                # print(f"{self.filePath=}")
             if request["event"] == "quit":  # Handle additional quit logic from here such as sending stop signal to teensy
                 self.running = False
                 self.conn.send({"event": "quit"})
 
                 if self._listen_evt:
                     self._listen_evt.set()  # add counterintuitive explanantion here
-                print("Sender thread stopped.")
+                # print("Sender thread stopped.")
                 return
 
             # move the logics below to a proper location later
             response = request
             response["status"] = "ACK" if status else "NAK"
             self.conn.send(response)
-            print(f"Response sent: {response}")
+            # print(f"Response sent: {response}")
 
     def _listener_loop(self):
-        print("Listener thread started.")
-        lines = []
-        # holds individual characters until we hit '\n'
         while self.running:
             self._listen_evt.wait()  # block until set()
             while self.running and self._listen_evt.is_set():
                 if not self.connected:
-                    print("Port is not connected, cannot read data.")
+                    # print("Port is not connected, cannot read data.")
                     self._listen_evt.clear()
                     continue
                 try:
@@ -110,7 +107,7 @@ class serialServer:
                     for byte in rawBytes:
                         self.byte_buf.put(byte)
                 except Exception as e:
-                    print(f"Serial read error: {e}")
+                    # print(f"Serial read error: {e}")
                     break
                 buf = bytearray()
                 while True:
@@ -120,18 +117,18 @@ class serialServer:
                         break
                 parts = buf.split(b"\n")
                 for part in parts[:-1]:
-                    lines.append({"INFO": (part + b"\n").decode("utf-8")})
+                    dpt = [{"INFO": (part + b"\n").decode("utf-8")}]
+                    self.recvQ.put(dpt)
+                    # print(f"Put data: {dpt}")
                 tail = parts[-1]
                 for b in tail:
                     self.byte_buf.put(b)
-                if len(lines) > 100:
-                    self.recvQ.put(lines)
-                    lines = []
+        self.recvQ.put([{"INFO": "quit"}])
         self.recvQ.put([{"event": "quit"}])
-        print("Listener thread stopped.")
+        # print("Listener thread stopped.")
 
     def run(self):
-        print("Serial server started.")
+        # print("Serial server started.")
         # Initialize threading objects here to avoid pickling issues
         self.senderThread = Thread(target=self.sendRequest, name="SerialSender", daemon=True)
         self._listen_evt = Event()
@@ -141,7 +138,7 @@ class serialServer:
         self.senderThread.join()  # Wait for the sender thread to finish
         self._listener_thread.join()  # Wait for the listener thread to finish
         self.stop()
-        print("Serial server stopped.")
+        # print("Serial server stopped.")
 
     def stop(self):
         # 4.1 Close serial port if still open
@@ -167,7 +164,7 @@ if __name__ == "__main__":
     # time.sleep(1)  # Allow some time for processing
     # if parent_conn.poll():
     #     response = parent_conn.recv()
-    #     print(f"Received response: {response}")
+    #     #print(f"Received response: {response}")
     # parent_conn.send({"event": "quit"})
     # ssp.join()
     # parent_conn.close()
