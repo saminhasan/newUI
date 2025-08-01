@@ -6,6 +6,7 @@ from appModel import FSM
 import time
 from UI.custom_tabview import CustomTabview
 from UI.custom_combobox import CustomComboBox
+from UI.custom_logviewer import LogViewer
 from serial_process import serialServer, portList
 from queue import Empty
 
@@ -25,10 +26,10 @@ class App(ctk.CTk):
         self.create_widgets()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.configure_widgets(self.fsm.available_transitions(), self.fsm.state)
-        self.comServer = serialServer(self.childConnection, self.recvQ)
-        self.comProcess = Process(target=self.comServer.run, name="SerialServerProcess")
+        self.comServer: serialServer = serialServer(self.childConnection, self.recvQ)
+        self.comProcess: Process = Process(target=self.comServer.run, name="SerialServerProcess")
         self.bind("<<ReceivedResponse>>", self.responseHandler)
-        self.resT = Thread(target=self.responseListener, daemon=True, name="ResponseListenerThread")
+        self.resT: Thread = Thread(target=self.responseListener, daemon=True, name="ResponseListenerThread")
         self.after(0, self.dataHandler)
 
     def create_widgets(self):
@@ -40,30 +41,30 @@ class App(ctk.CTk):
         self.grid_rowconfigure(1, weight=5)
         self.grid_columnconfigure(0, weight=5)
         self.grid_columnconfigure(1, weight=0)
-        self.tabL = CustomTabview(self)
+        self.tabL: CustomTabview = CustomTabview(self)
         self.tabL.grid(row=1, column=0, sticky="nsew", padx=(10, 10), pady=(10, 10))
         self.logTab = self.tabL.add("  Log  ")
         self.logTab.grid_rowconfigure(0, weight=1)
         self.logTab.grid_columnconfigure(0, weight=1)
-        self.logTerminal = ctk.CTkTextbox(self.logTab)
+        self.logTerminal: ctk.CTkTextbox = ctk.CTkTextbox(self.logTab)
         self.logTerminal.tag_config("info", foreground="green")
         self.logTerminal.tag_config("warning", foreground="orange")
         self.logTerminal.tag_config("error", foreground="red")
         self.logTerminal.tag_config("debug", foreground="gray")
         self.logTerminal.grid(row=0, column=0, sticky="nsew", padx=(10, 10), pady=(10, 10))
         self.logTerminal.configure(state="disabled")
-        self.stateTab = self.tabL.add("  State  ")
-        self.dataTab = self.tabL.add("  Data  ")
+        self.stateTab: CustomTabview = self.tabL.add("  State  ")
+        self.dataTab: CustomTabview = self.tabL.add("  Data  ")
 
-        self.tabR = CustomTabview(self)
+        self.tabR: CustomTabview = CustomTabview(self)
         self.tabR.grid(row=1, column=1, sticky="nsew", padx=(10, 10), pady=(10, 10))
-        self.controlPanel = self.tabR.add("Control Panel")
-        self.controlPanelWidgets = {}
+        self.controlPanel: ctk.CTkFrame = self.tabR.add("Control Panel")
+        self.controlPanelWidgets: dict = {}
         for col in range(6):
             self.controlPanel.grid_columnconfigure(col, weight=1)
         for row in range(1, 10):
             self.controlPanel.grid_rowconfigure(row, weight=1)
-        self.portSelect = CustomComboBox(
+        self.portSelect: CustomComboBox = CustomComboBox(
             self.controlPanel,
             values=[""],
             dropdown_pressed_callback=self.dropdown_callback,
@@ -81,10 +82,12 @@ class App(ctk.CTk):
         self.enableBtn = ctk.CTkButton(self.controlPanel, text="ENABLE", command=lambda: self.requestHandler("enable"))
         self.enableBtn.grid(row=1, column=0, rowspan=2, columnspan=6, sticky="nsew", padx=(10, 10), pady=(10, 10))
         self.controlPanelWidgets["enable"] = self.enableBtn
-        self.uploadBtn = ctk.CTkButton(self.controlPanel, text="UPLOAD", command=lambda: self.fileHandler("upload"))
+        self.uploadBtn: ctk.CTkButton = ctk.CTkButton(
+            self.controlPanel, text="UPLOAD", command=lambda: self.fileHandler("upload")
+        )
         self.uploadBtn.grid(row=3, column=0, columnspan=6, rowspan=2, sticky="nsew", padx=(10, 10), pady=(10, 10))
         self.controlPanelWidgets["upload"] = self.uploadBtn
-        self.playbackSegment = ctk.CTkSegmentedButton(
+        self.playbackSegment: ctk.CTkSegmentedButton = ctk.CTkSegmentedButton(
             self.controlPanel, values=["▶︎", "|| ", " ■"], font=("Cascadia Code", 24), state="normal", dynamic_resizing=False
         )
         self.playbackSegment.grid(row=5, column=0, columnspan=6, rowspan=2, sticky="nsew", padx=(10, 10), pady=(10, 10))
@@ -94,22 +97,24 @@ class App(ctk.CTk):
         self.controlPanelWidgets["play"].configure(command=lambda: self.requestHandler("play"))
         self.controlPanelWidgets["pause"].configure(command=lambda: self.requestHandler("pause"))
         self.controlPanelWidgets["stop"].configure(command=lambda: self.requestHandler("stop"))
-        self.disableBtn = ctk.CTkButton(
+        self.disableBtn: ctk.CTkButton = ctk.CTkButton(
             self.controlPanel, text="EStop", command=lambda: self.requestHandler("disable"), fg_color="red4", hover_color="red2"
         )
         self.disableBtn.grid(row=7, column=0, rowspan=2, columnspan=6, sticky="nsew", padx=(10, 10), pady=(10, 10))
         self.controlPanelWidgets["disable"] = self.disableBtn
-        self.resetBtn = ctk.CTkButton(self.controlPanel, text="RESET", command=lambda: self.requestHandler("reset"))
+        self.resetBtn: ctk.CTkButton = ctk.CTkButton(
+            self.controlPanel, text="RESET", command=lambda: self.requestHandler("reset")
+        )
         self.resetBtn.grid(row=9, column=0, columnspan=6, sticky="nsew", padx=(10, 10), pady=(10, 10))
         self.controlPanelWidgets["reset"] = self.resetBtn
 
     def configure_widgets(self, to_enable=None, current_state=None):
-        en = set(to_enable or ())
+        enabled_widgets: set = set(to_enable or ())
         for key, w in self.controlPanelWidgets.items():
             current = w.cget("state")
-            if key not in en and current != "disabled":
+            if key not in enabled_widgets and current != "disabled":
                 w.configure(state="disabled")
-        for key in en:
+        for key in enabled_widgets:
             w = self.controlPanelWidgets.get(key)
             if w is not None:
                 current = w.cget("state")
@@ -174,7 +179,6 @@ class App(ctk.CTk):
             self.after(100, self.dataHandler)
 
     def updateLog(self, data):
-        # print(data)
         infos = [d.get("INFO", None) for d in data if d.get("INFO", None) is not None]
         if infos:
             data_str = "".join(str(x) for x in infos)
