@@ -37,8 +37,8 @@ class serialServer:
             return False
         try:
             self.port.open()
-            # if self._listen_evt:
-            #     self._listen_evt.set()
+            if not self.listen.is_set():
+                self.listen.set()
             print(f"connect to port: {self.portStr}")
             return True
         except Exception as e:
@@ -48,8 +48,8 @@ class serialServer:
     def disconnect(self):
         if not self.connected:
             return True
-        # if self._listen_evt:
-        #     self._listen_evt.clear()
+        if self.listen.is_set():
+            self.listen.clear()
         try:
             self.port.close()
         except Exception as e:
@@ -81,11 +81,19 @@ class serialServer:
                 print(f"{self.filePath=}")
             if request["event"] == "quit":  # Handle additional quit logic from here such as sending stop signal to teensy
                 self.running = False
+                self.listen.set()
                 self.listen.clear()
             response = request
             response["status"] = "ACK" if status else "NAK"
-            self.pipe.send(response)
-            # print(f"Response sent: {response}")
+            try:
+                self.pipe.send(response)
+            except BrokenPipeError:
+                print("Broken pipe error: Pipe is closed.")
+                self.running = False
+                self.listen.set()
+                self.listen.clear()
+            except Exception as e:
+                print(f"Error sending response: {e}")
         print("sendRequest thread stopped.")
 
     def SerialListener(self):
@@ -94,24 +102,25 @@ class serialServer:
         while self.running:
             self.listen.wait()
             while self.running and self.listen.is_set():
-                if self.connected:
-                    try:
+                rawBytes = bytearray()
+                try:
+                    if self.connected:
                         rawBytes = self.port.read(max(self.port.in_waiting, 1))
-                    except Exception as e:
-                        print(f"Serial read error: {e}")
-                        continue
-                    if len(rawBytes) == 0:
+                    if not rawBytes:
                         continue
                     byteBuffer.extend(rawBytes)
                     parts = byteBuffer.split(b"\n")
                     for part in parts[:-1]:
-                        if self.running and self.listen.is_set():
-                            self.recvQ.put({"INFO": part.decode("utf-8", errors="ignore") + "\n"})
-                            drop = len(part) + 1
-                            del byteBuffer[:drop]
-                        else:
-                            print("Listener stopped while processing data.")
-                            return
+                        if part:
+                            self.recvQ.put({"INFO": part.decode("utf-8") + "\n"})
+                    if parts[-1]:
+                        byteBuffer = bytearray(parts[-1])
+                except serial.SerialException as e:
+                    self.disconnect()
+                    print(f"Serial error: {e}")
+                except Exception as e:
+                    print(f"Exception: {e}")
+                    continue
         print("Listener thread stopped.")
 
     def run(self):

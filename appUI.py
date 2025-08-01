@@ -163,14 +163,13 @@ class App(ctk.CTk):
 
     def dataHandler(self, VirtualEvent=None):  # add tags for info warning error and stuff
         data = []
-        try:
-            while True:
-                data.append(self.recvQ.get_nowait())  # Non-blocking get with a timeout
-                # print(f"Data received: {type(data), len(data)}")
-        except Empty:
-            pass
+        while not self.recvQ.empty():
+            try:
+                data.append(self.recvQ.get_nowait())
+            except Empty:
+                pass
         if self.running:
-            if len(data) > 0:
+            if data:
                 self.updateLog(data)
             self.after(100, self.dataHandler)
 
@@ -191,22 +190,14 @@ class App(ctk.CTk):
         self.resT.start()
         self.mainloop()
 
-    def cleanQ(self):
-        while not self.recvQ.empty():
-            try:
-                self.recvQ.get_nowait()
-            except Empty:
-                break
-
     def on_closing(self):
         self.running = False
         self.requestHandler("quit")
         if self.resT.is_alive():
             self.resT.join()
-        self.cleanQ()
+        self.dataHandler()
         self.comProcess.join()
         self.parentConnection.close()
-
         self.recvQ.close()
         self.recvQ.join_thread()
         self.destroy()
