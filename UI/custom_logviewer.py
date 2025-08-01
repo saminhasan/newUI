@@ -16,10 +16,10 @@ class LogViewer(ctk.CTkFrame):
         self.textbox.grid(row=0, column=0, sticky="nsew")
 
         # 1a) Tag configurations
-        self.textbox.tag_config("info", foreground="green")
-        self.textbox.tag_config("warning", foreground="orange")
-        self.textbox.tag_config("error", foreground="red")
-        self.textbox.tag_config("debug", foreground="gray")
+        self.textbox.tag_config("INFO", foreground="green")
+        self.textbox.tag_config("WARNING", foreground="orange")
+        self.textbox.tag_config("ERROR", foreground="red")
+        self.textbox.tag_config("DEBUG", foreground="gray")
 
         # 2) External vertical scrollbar
         self.scrollbar = ctk.CTkScrollbar(self, orientation="vertical", command=self._on_scroll)
@@ -46,10 +46,10 @@ class LogViewer(ctk.CTkFrame):
         """
         Add a new log entry.
         log_dict must have:
-          - "tag":    one of "info","warning","error","debug"
+          - "tag":    one of "INFO","WARNING","ERROR","DEBUG"
           - "entry":  the text message
         """
-        tag = log_dict.get("tag", "info")
+        tag = log_dict.get("tag", "INFO")
         entry = log_dict.get("entry", "")
         # determine if we're scrolled to bottom
         at_bottom = self.offset + self._visible_count() >= len(self.logs)

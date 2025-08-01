@@ -112,7 +112,8 @@ class serialServer:
                     parts = byteBuffer.split(b"\n")
                     for part in parts[:-1]:
                         if part:
-                            self.recvQ.put({"INFO": part.decode("utf-8") + "\n"})
+                            # self.recvQ.put({"tag": "INFO", "entry": part.decode("utf-8") + "\n"})
+                            pass  # send data log here or some to pipe to determine state or sth
                     if parts[-1]:
                         byteBuffer = bytearray(parts[-1])
                 except serial.SerialException as e:

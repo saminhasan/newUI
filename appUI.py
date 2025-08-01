@@ -6,7 +6,6 @@ from appModel import FSM
 import time
 from UI.custom_tabview import CustomTabview
 from UI.custom_combobox import CustomComboBox
-from UI.custom_logviewer import LogViewer
 from serial_process import serialServer, portList
 from queue import Empty
 
@@ -179,12 +178,11 @@ class App(ctk.CTk):
             self.after(100, self.dataHandler)
 
     def updateLog(self, data):
-        infos = [d.get("INFO", None) for d in data if d.get("INFO", None) is not None]
-        if infos:
-            data_str = "".join(str(x) for x in infos)
-            self.logTerminal.configure(state="normal")
-            self.logTerminal.insert("end", data_str)
-            self.logTerminal.configure(state="disabled")
+        print(data)
+        data_str = "".join(f"{item['tag']}:{item['entry']}" for item in data)
+        self.logTerminal.configure(state="normal")
+        self.logTerminal.insert("end", data_str)
+        self.logTerminal.configure(state="disabled")
         _, last = self.logTerminal.yview()  # Auto Scroll to the end of the log terminal
         if last > 0.9:
             self.logTerminal.yview("end")

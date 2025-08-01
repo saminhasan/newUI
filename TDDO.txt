@@ -1,3 +1,0 @@
-use log for only user inputs and event successes
-use log for errors and exceptions
-use tags for categorizing logs
