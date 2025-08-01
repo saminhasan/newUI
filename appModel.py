@@ -1,4 +1,3 @@
-
 # ────────original states/transitions, untouched ───────────────────────────────
 states = [
     "IDLE",
@@ -12,23 +11,24 @@ states = [
 ]
 
 transitions = [
-    {"transition": "portSelect",  "source": "IDLE",          "dest": "DISCONNECTED"},
-    {"transition": "portSelect",  "source": "DISCONNECTED",  "dest": "DISCONNECTED"},
-    {"transition": "connect",     "source": "DISCONNECTED",  "dest": "CONNECTED"},
-    {"transition": "disconnect",  "source": "CONNECTED",     "dest": "DISCONNECTED"},
-    {"transition": "enable",      "source": "CONNECTED",     "dest": "STOPPED"},
-    {"transition": "upload",      "source": "STOPPED",       "dest": "READY"},
-    {"transition": "play",        "source": "READY",         "dest": "PLAYING"},
-    {"transition": "pause",       "source": "PLAYING",       "dest": "PAUSED"},
-    {"transition": "play",        "source": "PAUSED",        "dest": "PLAYING"},
-    {"transition": "stop",        "source": "PLAYING",       "dest": "STOPPED"},
-    {"transition": "stop",        "source": "PAUSED",        "dest": "STOPPED"},
-    {"transition": "reset",     "source": states,         "dest": "DISCONNECTED"},
-    {"transition": "disable",     "source": states[2:],      "dest": "ERROR"},
-    {"transition": "quit",        "source": states,          "dest": "IDLE"},
+    {"transition": "portSelect", "source": "IDLE", "dest": "DISCONNECTED"},
+    {"transition": "portSelect", "source": "DISCONNECTED", "dest": "DISCONNECTED"},
+    {"transition": "connect", "source": "DISCONNECTED", "dest": "CONNECTED"},
+    {"transition": "disconnect", "source": "CONNECTED", "dest": "DISCONNECTED"},
+    {"transition": "enable", "source": "CONNECTED", "dest": "STOPPED"},
+    {"transition": "upload", "source": "STOPPED", "dest": "READY"},
+    {"transition": "play", "source": "READY", "dest": "PLAYING"},
+    {"transition": "pause", "source": "PLAYING", "dest": "PAUSED"},
+    {"transition": "play", "source": "PAUSED", "dest": "PLAYING"},
+    {"transition": "stop", "source": "PLAYING", "dest": "STOPPED"},
+    {"transition": "stop", "source": "PAUSED", "dest": "STOPPED"},
+    {"transition": "reset", "source": states, "dest": "DISCONNECTED"},
+    {"transition": "disable", "source": states[2:], "dest": "ERROR"},
+    {"transition": "quit", "source": states, "dest": "IDLE"},
 ]
 # ─────────────────────────────────────────────────────────────────────────
 import networkx as nx
+
 
 class FSM:
     def __init__(self, states=states, transitions=transitions, initial=None):
@@ -61,16 +61,15 @@ class FSM:
 
     def available_transitions(self):
         """List all valid transitions from the current state."""
-        return list({
-            data["transition"]
-            for _, _, _, data in self._G.out_edges(self.state, keys=True, data=True)
-        })
+        return list({data["transition"] for _, _, _, data in self._G.out_edges(self.state, keys=True, data=True)})
 
     def __repr__(self):
         return f"<Current State={self.state!r}>"
 
+
 def test():
     import random
+
     fsm = FSM(states, transitions, initial="IDLE")
     States = set()
     while True:
@@ -84,42 +83,38 @@ def test():
             print("All states reached!")
             print("----------------------TEST PASSED----------------------")
             break
+
+
 if __name__ == "__main__":
     test()
     import random
     import matplotlib.pyplot as plt
     import matplotlib.animation as animation
+
     fsm = FSM(states, transitions, initial="IDLE")
-    G= fsm._G
+    G = fsm._G
     # Compute layout
     pos = nx.spring_layout(G, seed=42)
 
     # Set up dark-themed plot
-    plt.style.use('dark_background')
+    plt.style.use("dark_background")
     fig, ax = plt.subplots()
-    ax.set_facecolor('#121212')
+    ax.set_facecolor("#121212")
 
     # Draw static edges and labels
     nx.draw_networkx_edges(
-        G, pos, ax=ax,
-        arrowstyle='-|>', arrowsize=15,
-        edge_color='lightgray', connectionstyle='arc3,rad=0.1'
+        G, pos, ax=ax, arrowstyle="-|>", arrowsize=15, edge_color="lightgray", connectionstyle="arc3,rad=0.1"
     )
-    edge_labels = { (u, v): data['transition'] 
-                    for u, v, _, data in G.edges(keys=True, data=True) }
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='white')
+    edge_labels = {(u, v): data["transition"] for u, v, _, data in G.edges(keys=True, data=True)}
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color="white")
 
     # Draw nodes and labels
-    nodes = nx.draw_networkx_nodes(
-        G, pos,
-        node_color=['gray'] * len(G.nodes()),
-        node_size=2000, node_shape='s'
-    )
-    nx.draw_networkx_labels(G, pos, font_color='white')
+    nodes = nx.draw_networkx_nodes(G, pos, node_color=["gray"] * len(G.nodes()), node_size=2000, node_shape="s")
+    nx.draw_networkx_labels(G, pos, font_color="white")
 
     # Initialize FSM
-    fsm = FSM(states, transitions, initial='IDLE')
-    ax.set_title(f'FSM starting at {fsm.state}', color='white')
+    fsm = FSM(states, transitions, initial="IDLE")
+    ax.set_title(f"FSM starting at {fsm.state}", color="white")
 
     # Animation update function
     def update(frame):
@@ -127,9 +122,9 @@ if __name__ == "__main__":
         trig = random.choice(fsm.available_transitions())
         new = fsm.trigger(trig)
         # Highlight current state
-        colors = ['cyan' if node == new else 'gray' for node in G.nodes()]
+        colors = ["cyan" if node == new else "gray" for node in G.nodes()]
         nodes.set_color(colors)
-        ax.set_title(f'{prev} ->{trig}->{new}', color='white')
+        ax.set_title(f"{prev} ->{trig}->{new}", color="white")
 
     # Create and display the animation (fewer frames to reduce output size)
     ani = animation.FuncAnimation(fig, update, frames=10, interval=1000, repeat=False)

@@ -2,14 +2,15 @@
 #define IMPORTS_H
 
 #include <Arduino.h>
-
+uint32_t counter = 0; // Global counter variable
 IntervalTimer timer; // Timer for periodic tasks
 
 
 void TimerCallback() {
     if(Serial.dtr())
     {
-        Serial.printf("%lu\n", micros());
+        Serial.printf("%lu | %lu | %lu | %lu\n", counter, micros(), millis(), UINT32_MAX-counter);
+        counter++;
     }
 
 }

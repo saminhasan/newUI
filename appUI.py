@@ -9,7 +9,7 @@ from UI.custom_combobox import CustomComboBox
 from serial_process import serialServer, portList
 from queue import Empty
 
-WIDTH: int = 640
+WIDTH: int = 960
 HEIGHT: int = 480
 
 
@@ -18,18 +18,18 @@ class App(ctk.CTk):
         super().__init__()
         self.seq: int = 0
         self.running: bool = True
-        self.fsm = FSM()
+        self.response: dict = {}
+        self.recvQ: Queue = Queue()
+        self.parentConnection, self.childConnection = Pipe()
+        self.fsm: FSM = FSM()
         self.create_widgets()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.configure_widgets(self.fsm.available_transitions(), self.fsm.state)
-        self.parent_conn, self.child_conn = Pipe()
-        self.recvQ = Queue()
-        self.comServer = serialServer(self.child_conn, self.recvQ)
+        self.comServer = serialServer(self.childConnection, self.recvQ)
         self.comProcess = Process(target=self.comServer.run, name="SerialServerProcess")
         self.bind("<<ReceivedResponse>>", self.responseHandler)
-        self.resT = Thread(target=self.rCB, daemon=True)
-        self.response: dict = {}
-        self.after(100, self.dataHandler)
+        self.resT = Thread(target=self.responseListener, daemon=True, name="ResponseListenerThread")
+        self.after(0, self.dataHandler)
 
     def create_widgets(self):
         self.title("UI")
@@ -68,7 +68,7 @@ class App(ctk.CTk):
             values=[""],
             dropdown_pressed_callback=self.dropdown_callback,
             width=280,
-            command=lambda event: self.eventHandler("portSelect", port=event),
+            command=lambda event: self.requestHandler("portSelect", port=event),
         )
         self.portSelect.grid(row=0, column=0, columnspan=3, sticky="we", padx=(10, 5), pady=(10, 10))
         self.controlPanelWidgets["portSelect"] = self.portSelect
@@ -76,9 +76,9 @@ class App(ctk.CTk):
         self.connectionSegment.grid(row=0, column=4, columnspan=4, sticky="we", padx=(5, 10), pady=(10, 10))
         self.controlPanelWidgets["connect"] = self.connectionSegment._buttons_dict["C"]
         self.controlPanelWidgets["disconnect"] = self.connectionSegment._buttons_dict["D"]
-        self.controlPanelWidgets["connect"].configure(command=lambda: self.eventHandler("connect"))
-        self.controlPanelWidgets["disconnect"].configure(command=lambda: self.eventHandler("disconnect"))
-        self.enableBtn = ctk.CTkButton(self.controlPanel, text="ENABLE", command=lambda: self.eventHandler("enable"))
+        self.controlPanelWidgets["connect"].configure(command=lambda: self.requestHandler("connect"))
+        self.controlPanelWidgets["disconnect"].configure(command=lambda: self.requestHandler("disconnect"))
+        self.enableBtn = ctk.CTkButton(self.controlPanel, text="ENABLE", command=lambda: self.requestHandler("enable"))
         self.enableBtn.grid(row=1, column=0, rowspan=2, columnspan=6, sticky="nsew", padx=(10, 10), pady=(10, 10))
         self.controlPanelWidgets["enable"] = self.enableBtn
         self.uploadBtn = ctk.CTkButton(self.controlPanel, text="UPLOAD", command=lambda: self.fileHandler("upload"))
@@ -91,17 +91,30 @@ class App(ctk.CTk):
         self.controlPanelWidgets["play"] = self.playbackSegment._buttons_dict["▶︎"]
         self.controlPanelWidgets["pause"] = self.playbackSegment._buttons_dict["|| "]
         self.controlPanelWidgets["stop"] = self.playbackSegment._buttons_dict[" ■"]
-        self.controlPanelWidgets["play"].configure(command=lambda: self.eventHandler("play"))
-        self.controlPanelWidgets["pause"].configure(command=lambda: self.eventHandler("pause"))
-        self.controlPanelWidgets["stop"].configure(command=lambda: self.eventHandler("stop"))
+        self.controlPanelWidgets["play"].configure(command=lambda: self.requestHandler("play"))
+        self.controlPanelWidgets["pause"].configure(command=lambda: self.requestHandler("pause"))
+        self.controlPanelWidgets["stop"].configure(command=lambda: self.requestHandler("stop"))
         self.disableBtn = ctk.CTkButton(
-            self.controlPanel, text="EStop", command=lambda: self.eventHandler("disable"), fg_color="red4", hover_color="red2"
+            self.controlPanel, text="EStop", command=lambda: self.requestHandler("disable"), fg_color="red4", hover_color="red2"
         )
         self.disableBtn.grid(row=7, column=0, rowspan=2, columnspan=6, sticky="nsew", padx=(10, 10), pady=(10, 10))
         self.controlPanelWidgets["disable"] = self.disableBtn
-        self.resetBtn = ctk.CTkButton(self.controlPanel, text="RESET", command=lambda: self.eventHandler("reset"))
+        self.resetBtn = ctk.CTkButton(self.controlPanel, text="RESET", command=lambda: self.requestHandler("reset"))
         self.resetBtn.grid(row=9, column=0, columnspan=6, sticky="nsew", padx=(10, 10), pady=(10, 10))
         self.controlPanelWidgets["reset"] = self.resetBtn
+
+    def configure_widgets(self, to_enable=None, current_state=None):
+        en = set(to_enable or ())
+        for key, w in self.controlPanelWidgets.items():
+            current = w.cget("state")
+            if key not in en and current != "disabled":
+                w.configure(state="disabled")
+        for key in en:
+            w = self.controlPanelWidgets.get(key)
+            if w is not None:
+                current = w.cget("state")
+                if current != "normal":
+                    w.configure(state="normal")
 
     def dropdown_callback(self):
         self.portsDict = {
@@ -117,51 +130,25 @@ class App(ctk.CTk):
     def fileHandler(self, event_name="upload"):
         file_path = filedialog.askopenfilename(title="Select File", filetypes=[("All Files", "*.*")])
         if file_path:  # call checking function here or maybe even plot the file
-            self.eventHandler(event_name, filePath=file_path)
+            self.requestHandler(event_name, filePath=file_path)
         else:
             messagebox.showwarning("No File Selected", "Please select a file to upload.")
             self.fileHandler()
 
-    def rCB(self):
-        # print("Response handler started.")
+    def requestHandler(self, event_name, **kwargs):
+        eventDict = {"event": event_name, "seq": self.seq}
+        if kwargs:
+            eventDict.update(kwargs)
+        self.parentConnection.send(eventDict)
+        self.seq += 1
+
+    def responseListener(self):
         while self.running:
-            self.response = self.parent_conn.recv()
+            self.response = self.parentConnection.recv()
             if self.response.get("event", None) == "quit":
                 break
             else:
                 self.after(0, lambda: self.event_generate("<<ReceivedResponse>>", when="tail"))
-        # print("Response handler Stopped.")
-
-    def eventHandler(self, event_name, **kwargs):
-        eventDict = {"event": event_name, "seq": self.seq}
-        if kwargs:
-            eventDict.update(kwargs)
-        self.parent_conn.send(eventDict)
-        self.seq += 1
-
-    def dataHandler(self, VirtualEvent=None):  # add tags for info warning error and stuff
-        # assuming self.data is now a list of dicts
-        if not self.running:
-            return
-        try:
-            data = self.recvQ.get(block=False)
-            print(f"Data received: {data}")
-        except Empty:
-
-            self.after(100, self.dataHandler)
-            return
-        infos = [d.get("INFO", None) for d in data if d.get("INFO", None) is not None]
-
-        if infos:
-            data_str = "".join(str(x) for x in infos)
-            self.logTerminal.configure(state="normal")
-            self.logTerminal.insert("end", data_str)
-            self.logTerminal.configure(state="disabled")
-        _, last = self.logTerminal.yview()
-        if last > 0.9:
-            self.logTerminal.yview("end")
-
-        self.after(100, self.dataHandler)
 
     def responseHandler(self, VirtualEvent=None):
         event = self.response.get("event", None)
@@ -174,34 +161,54 @@ class App(ctk.CTk):
                 raise (f"Event {event} not in: {self.fsm.available_transitions()}")
         self.response = {}
 
-    def configure_widgets(self, to_enable=None, current_state=None):
+    def dataHandler(self, VirtualEvent=None):  # add tags for info warning error and stuff
+        data = []
+        try:
+            while True:
+                data.append(self.recvQ.get_nowait())  # Non-blocking get with a timeout
+                # print(f"Data received: {type(data), len(data)}")
+        except Empty:
+            pass
+        if self.running:
+            if len(data) > 0:
+                self.updateLog(data)
+            self.after(100, self.dataHandler)
 
-        en = set(to_enable or ())
-        for key, w in self.controlPanelWidgets.items():
-            current = w.cget("state")
-            if key not in en and current != "disabled":
-                w.configure(state="disabled")
-        for key in en:
-            w = self.controlPanelWidgets.get(key)
-            if w is not None:
-                current = w.cget("state")
-                if current != "normal":
-                    w.configure(state="normal")
+    def updateLog(self, data):
+        # print(data)
+        infos = [d.get("INFO", None) for d in data if d.get("INFO", None) is not None]
+        if infos:
+            data_str = "".join(str(x) for x in infos)
+            self.logTerminal.configure(state="normal")
+            self.logTerminal.insert("end", data_str)
+            self.logTerminal.configure(state="disabled")
+        _, last = self.logTerminal.yview()  # Auto Scroll to the end of the log terminal
+        if last > 0.9:
+            self.logTerminal.yview("end")
 
     def run(self):
         self.comProcess.start()
         self.resT.start()
         self.mainloop()
 
+    def cleanQ(self):
+        while not self.recvQ.empty():
+            try:
+                self.recvQ.get_nowait()
+            except Empty:
+                break
+
     def on_closing(self):
         self.running = False
-        self.eventHandler("quit")
-        self.comProcess.join()
-        self.parent_conn.close()
-        self.recvQ.close()
-        self.recvQ.join_thread()
+        self.requestHandler("quit")
         if self.resT.is_alive():
             self.resT.join()
+        self.cleanQ()
+        self.comProcess.join()
+        self.parentConnection.close()
+
+        self.recvQ.close()
+        self.recvQ.join_thread()
         self.destroy()
 
 
