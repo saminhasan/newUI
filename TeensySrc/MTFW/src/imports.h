@@ -9,7 +9,8 @@ IntervalTimer timer; // Timer for periodic tasks
 void TimerCallback() {
     if(Serial.dtr())
     {
-        Serial.printf("%lu | %lu | %lu | %lu\n", counter, micros(), millis(), UINT32_MAX-counter);
+        // Serial.printf("%lu | %lu | %lu | %lu\n", counter, micros(), millis(), UINT32_MAX-counter);
+        Serial.printf("%10lu | %10lu | %10lu | %10lu%*c\n",counter,micros(),millis(),UINT32_MAX - counter,462, ' ');
         counter++;
     }
 

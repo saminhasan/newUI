@@ -11,6 +11,7 @@ from queue import Empty
 
 WIDTH: int = 960
 HEIGHT: int = 480
+MAX_LINES = 1000
 
 
 class App(ctk.CTk):
@@ -28,7 +29,7 @@ class App(ctk.CTk):
         self.comServer: serialServer = serialServer(self.childConnection, self.recvQ)
         self.comProcess: Process = Process(target=self.comServer.run, name="SerialServerProcess")
         self.bind("<<ReceivedResponse>>", self.responseHandler)
-        self.resT: Thread = Thread(target=self.responseListener, daemon=True, name="ResponseListenerThread")
+        self.resLT: Thread = Thread(target=self.responseListener, daemon=True, name="ResponseListenerThread")
         self.after(0, self.dataHandler)
 
     def create_widgets(self):
@@ -52,6 +53,7 @@ class App(ctk.CTk):
         self.logTerminal.tag_config("debug", foreground="gray")
         self.logTerminal.grid(row=0, column=0, sticky="nsew", padx=(10, 10), pady=(10, 10))
         self.logTerminal.configure(state="disabled")
+
         self.stateTab: CustomTabview = self.tabL.add("  State  ")
         self.dataTab: CustomTabview = self.tabL.add("  Data  ")
 
@@ -175,28 +177,33 @@ class App(ctk.CTk):
         if self.running:
             if data:
                 self.updateLog(data)
-            self.after(100, self.dataHandler)
+            self.after(10, self.dataHandler)
 
     def updateLog(self, data):
-        print(data)
+        # print(data)
         data_str = "".join(f"{item['tag']}:{item['entry']}" for item in data)
         self.logTerminal.configure(state="normal")
         self.logTerminal.insert("end", data_str)
+
+        num_lines = int(self.logTerminal.index("end-1c").split(".")[0])
+        if num_lines > MAX_LINES:
+            self.logTerminal.delete("1.0", f"{num_lines - MAX_LINES}.0")
         self.logTerminal.configure(state="disabled")
+
         _, last = self.logTerminal.yview()  # Auto Scroll to the end of the log terminal
-        if last > 0.9:
+        if last > 0.8:
             self.logTerminal.yview("end")
 
     def run(self):
         self.comProcess.start()
-        self.resT.start()
+        self.resLT.start()
         self.mainloop()
 
     def on_closing(self):
         self.running = False
         self.requestHandler("quit")
-        if self.resT.is_alive():
-            self.resT.join()
+        if self.resLT.is_alive():
+            self.resLT.join()
         self.dataHandler()
         self.comProcess.join()
         self.parentConnection.close()
