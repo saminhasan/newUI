@@ -102,26 +102,26 @@ class serialServer:
         while self.running:
             self.listen.wait()
             while self.running and self.listen.is_set():
-                rawBytes = bytearray()
                 try:
-                    if self.connected:
-                        rawBytes = self.port.read(max(self.port.in_waiting, 1))
-                    if not rawBytes:
+                    if not (self.connected and (rawBytes := self.port.read(max(self.port.in_waiting, 1)))):
                         continue
+
                     byteBuffer.extend(rawBytes)
                     parts = byteBuffer.split(b"\n")
+
                     for part in parts[:-1]:
-                        if part:
                             self.recvQ.put({"tag": "INFO", "entry": part.decode("utf-8") + "\n"})
-                            pass  # send data log here or some to pipe to determine state or sth
-                    if parts[-1]:
-                        byteBuffer = bytearray(parts[-1])
+                            # Optional: place log/pipe code here
+
+                    byteBuffer = bytearray(parts[-1])
+
                 except serial.SerialException as e:
                     self.disconnect()
+                    self.listen.clear()
                     print(f"Serial error: {e}")
+
                 except Exception as e:
                     print(f"Exception: {e}")
-                    continue
         print("Listener thread stopped.")
 
     def run(self):
@@ -135,7 +135,7 @@ class serialServer:
         self.slT.join()
         self.stop()
         print("Serial server stopped.")
-        exit(0)
+        # exit(0)
 
     def stop(self):
         if self.connected:
