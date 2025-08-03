@@ -110,8 +110,8 @@ class serialServer:
                     parts = byteBuffer.split(b"\n")
 
                     for part in parts[:-1]:
-                            self.recvQ.put({"tag": "INFO", "entry": part.decode("utf-8") + "\n"})
-                            # Optional: place log/pipe code here
+                        self.recvQ.put({"tag": "INFO", "entry": part.decode("utf-8") + "\n"})
+                        # Optional: place log/pipe code here
 
                     byteBuffer = bytearray(parts[-1])
 

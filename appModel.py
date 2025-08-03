@@ -22,7 +22,7 @@ transitions = [
     {"transition": "play", "source": "PAUSED", "dest": "PLAYING"},
     {"transition": "stop", "source": "PLAYING", "dest": "STOPPED"},
     {"transition": "stop", "source": "PAUSED", "dest": "STOPPED"},
-    {"transition": "reset", "source": states, "dest": "DISCONNECTED"},
+    {"transition": "reset", "source": states[1:], "dest": "DISCONNECTED"},
     {"transition": "disable", "source": states[2:], "dest": "ERROR"},
     {"transition": "quit", "source": states, "dest": "IDLE"},
 ]
@@ -87,45 +87,3 @@ def test():
 
 if __name__ == "__main__":
     test()
-    import random
-    import matplotlib.pyplot as plt
-    import matplotlib.animation as animation
-
-    fsm = FSM(states, transitions, initial="IDLE")
-    G = fsm._G
-    # Compute layout
-    pos = nx.spring_layout(G, seed=42)
-
-    # Set up dark-themed plot
-    plt.style.use("dark_background")
-    fig, ax = plt.subplots()
-    ax.set_facecolor("#121212")
-
-    # Draw static edges and labels
-    nx.draw_networkx_edges(
-        G, pos, ax=ax, arrowstyle="-|>", arrowsize=15, edge_color="lightgray", connectionstyle="arc3,rad=0.1"
-    )
-    edge_labels = {(u, v): data["transition"] for u, v, _, data in G.edges(keys=True, data=True)}
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color="white")
-
-    # Draw nodes and labels
-    nodes = nx.draw_networkx_nodes(G, pos, node_color=["gray"] * len(G.nodes()), node_size=2000, node_shape="s")
-    nx.draw_networkx_labels(G, pos, font_color="white")
-
-    # Initialize FSM
-    fsm = FSM(states, transitions, initial="IDLE")
-    ax.set_title(f"FSM starting at {fsm.state}", color="white")
-
-    # Animation update function
-    def update(frame):
-        prev = fsm.state
-        trig = random.choice(fsm.available_transitions())
-        new = fsm.trigger(trig)
-        # Highlight current state
-        colors = ["cyan" if node == new else "gray" for node in G.nodes()]
-        nodes.set_color(colors)
-        ax.set_title(f"{prev} ->{trig}->{new}", color="white")
-
-    # Create and display the animation (fewer frames to reduce output size)
-    ani = animation.FuncAnimation(fig, update, frames=10, interval=1000, repeat=False)
-    plt.show()
