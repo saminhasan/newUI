@@ -1,5 +1,5 @@
 # ────────original states/transitions, untouched ───────────────────────────────
-states = [
+states: list[str] = [
     "IDLE",
     "DISCONNECTED",
     "CONNECTED",
@@ -9,13 +9,14 @@ states = [
     "ERROR",
 ]
 
-transitions = [
+transitions: list[dict[str, str | list[str]]] = [
     {"transition": "portSelect", "source": "IDLE", "dest": "DISCONNECTED"},
     {"transition": "portSelect", "source": "DISCONNECTED", "dest": "DISCONNECTED"},
     {"transition": "connect", "source": "DISCONNECTED", "dest": "CONNECTED"},
     {"transition": "disconnect", "source": "CONNECTED", "dest": "DISCONNECTED"},
     {"transition": "enable", "source": "CONNECTED", "dest": "STOPPED"},
-    {"transition": "upload", "source": "STOPPED", "dest": "PAUSED"},
+    {"transition": "upload", "source": "STOPPED", "dest": "READY"},
+    {"transition": "play", "source": "READY", "dest": "PLAYING"},
     {"transition": "pause", "source": "PLAYING", "dest": "PAUSED"},
     {"transition": "play", "source": "PAUSED", "dest": "PLAYING"},
     {"transition": "stop", "source": "PLAYING", "dest": "STOPPED"},
@@ -29,12 +30,14 @@ import networkx as nx
 
 
 class FSM:
-    def __init__(self, states=states, transitions=transitions, initial=None):
+    def __init__(
+        self, states: list[str] = states, transitions: list[dict[str, str | list[str]]] = transitions, initial: str = ""
+    ) -> None:
         # build the graph
-        self._G = nx.MultiDiGraph()
+        self._G: nx.MultiDiGraph = nx.MultiDiGraph()
         self._G.add_nodes_from(states)
         # flatten each transition’s source(s) into edges
-        edges = [
+        edges: list[tuple[str, str, str]] = [
             (src, t["dest"], t["transition"])
             for t in transitions
             for src in (t["source"] if isinstance(t["source"], list) else [t["source"]])
@@ -42,9 +45,9 @@ class FSM:
         for u, v, trig in edges:
             self._G.add_edge(u, v, transition=trig)
         # set initial state
-        self.state = initial if initial is not None else states[0]
+        self.state: str = initial if initial else states[0]
 
-    def trigger(self, name):
+    def trigger(self, name: str) -> str:
         """
         Fire a transition by trigger name.
         On success: updates self.state and returns the new state.
@@ -57,23 +60,23 @@ class FSM:
                 return dest
         raise ValueError(f"No transition '{name}' from state '{self.state}'")
 
-    def available_transitions(self):
+    def available_transitions(self) -> list[str]:
         """List all valid transitions from the current state."""
         return list({data["transition"] for _, _, _, data in self._G.out_edges(self.state, keys=True, data=True)})
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Current State={self.state!r}>"
 
 
-def test():
+def test() -> None:
     import random
 
-    fsm = FSM(states, transitions, initial="IDLE")
-    States = set()
+    fsm: FSM = FSM(states, transitions, initial="IDLE")
+    States: set[str] = set()
     while True:
-        previous_state = fsm.state
-        options = fsm.available_transitions()
-        random_event = random.choice(options)
+        previous_state: str = fsm.state
+        options: list[str] = fsm.available_transitions()
+        random_event: str = random.choice(options)
         fsm.trigger(random_event)
         print(f"{previous_state} -> {random_event} -> {fsm.state}")
         States.add(fsm.state)

@@ -13,11 +13,6 @@ class serialServer:
         self.port: serial.Serial = serial.Serial(port=None, timeout=None)
         self.portStr: str = ""
         self.filePath: str = ""
-
-        # Initialize these in run() method to avoid pickling issues
-        self.senderThread = None
-        self._listen_evt = None
-        self._listener_thread = None
         self.byteBuffer = Queue()
 
     @property
@@ -83,6 +78,10 @@ class serialServer:
                 pass
 
             if request["event"] == "estop":
+                # send stop signal to teensy
+                status = self.disconnect()
+                if status and self.listen:
+                    self.listen.clear()
                 pass
 
             if request["event"] == "reset":

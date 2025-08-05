@@ -4,6 +4,7 @@ from tkinter import filedialog, messagebox
 from UI.custom_combobox import CustomComboBox
 from serial.tools import list_ports, list_ports_common
 from multiprocessing import Process, Pipe
+from multiprocessing.connection import Connection
 from model import FSM
 from threading import Thread
 from serial_process import serialServer
@@ -24,10 +25,12 @@ def portList() -> list[list_ports_common.ListPortInfo]:
 
 
 class App(ctk.CTk):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.running: bool = True
         self.response: dict = {}
+        self.parentConnection: Connection
+        self.childConnection: Connection
         self.parentConnection, self.childConnection = Pipe()
         self.fsm: FSM = FSM()
         self.create_widgets()
@@ -37,7 +40,7 @@ class App(ctk.CTk):
         self.comServer: serialServer = serialServer(self.childConnection)
         self.comProcess: Process = Process(target=self.comServer.run, name="SerialServerProcess")
 
-    def create_widgets(self):
+    def create_widgets(self) -> None:
         self.title("Hexapod Controller")
         self.resizable(True, True)
         self.minsize(WIDTH, HEIGHT)
@@ -150,7 +153,7 @@ class App(ctk.CTk):
         self.controlPanelWidgets["reset"] = self.resetBtn
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    def configure_widgets(self, to_enable=None, current_state=None):
+    def configure_widgets(self, to_enable=None, current_state=None) -> None:
         enabled_widgets = set(to_enable or ())
         for key, w in self.controlPanelWidgets.items():
             target_state = "normal" if key in enabled_widgets else "disabled"
@@ -177,7 +180,7 @@ class App(ctk.CTk):
             self.pauseBtn.configure(fg_color="transparent")
             self.stopBtn.configure(fg_color="transparent")
 
-    def dropdown_callback(self):
+    def dropdown_callback(self) -> None:
         self.portsDict = {
             port.device: port
             for port in portList()
@@ -188,7 +191,7 @@ class App(ctk.CTk):
         else:
             self.portSelect.configure(values=[])
 
-    def fileHandler(self, event_name="upload"):
+    def fileHandler(self, event_name="upload") -> None:
         # file_path = filedialog.askopenfilename(title="Select File", filetypes=[("All Files", "*.*")])
         # if file_path:  # call checking function here or maybe even plot the file
         #     self.requestHandler(event_name, filePath=file_path)
@@ -197,7 +200,7 @@ class App(ctk.CTk):
         #     self.fileHandler()
         self.requestHandler(event_name, filePath="file_path_placeholder")
 
-    def requestHandler(self, event_name, **kwargs):
+    def requestHandler(self, event_name: str, **kwargs: dict) -> None:
         # if event_name == "portSelect":
         #     self.portSelect._entry.configure(state="readonly")
         eventDict = {"event": event_name}
@@ -205,7 +208,7 @@ class App(ctk.CTk):
             eventDict.update(kwargs)
         self.parentConnection.send(eventDict)
 
-    def responseListener(self):
+    def responseListener(self) -> None:
         while self.running:
             self.response = self.parentConnection.recv()
             if self.response.get("event", None) == "quit":
@@ -213,7 +216,7 @@ class App(ctk.CTk):
             else:
                 self.after(0, lambda: self.event_generate("<<ReceivedResponse>>", when="tail"))
 
-    def responseHandler(self, VirtualEvent=None):
+    def responseHandler(self, VirtualEvent=None) -> None:
         event = self.response.get("event", None)
         if event is not None:
             if event in self.fsm.available_transitions():
@@ -224,13 +227,12 @@ class App(ctk.CTk):
                 raise (f"Event {event} not in: {self.fsm.available_transitions()}")
         self.response = {}
 
-    def run(self):
+    def run(self) -> None:
         self.comProcess.start()
-
         self.resLT.start()
         self.mainloop()
 
-    def on_closing(self):
+    def on_closing(self) -> None:
         self.running = False
         self.requestHandler("quit")
         if self.resLT.is_alive():

@@ -22,11 +22,11 @@ class CustomComboBox(ctk.CTkComboBox):
     def _command_wrapper(self, value):
         """Wrapper for the command callback that enforces readonly state"""
         # Call the original command if it exists
+        # self._entry.configure(state="normal")
         if self._original_command is not None:
             self._original_command(value)
-
         # Force readonly state after command execution
-        self._entry.configure(state="readonly")
+        # self._entry.configure(state="readonly")
 
     def _setup_dropdown_callback(self):
         original_open_dropdown = self._open_dropdown_menu
