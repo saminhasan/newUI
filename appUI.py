@@ -6,12 +6,17 @@ from appModel import FSM
 import time
 from UI.custom_tabview import CustomTabview
 from UI.custom_combobox import CustomComboBox
-from serial_process import serialServer, portList
+from serial_process import serialServer
 from queue import Empty
+from serial.tools import list_ports, list_ports_common
 
 WIDTH: int = 960
 HEIGHT: int = 480
 MAX_LINES = 1000
+
+
+def portList() -> list[list_ports_common.ListPortInfo]:
+    return list_ports.comports()
 
 
 class App(ctk.CTk):
@@ -26,7 +31,7 @@ class App(ctk.CTk):
         self.create_widgets()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.configure_widgets(self.fsm.available_transitions(), self.fsm.state)
-        self.comServer: serialServer = serialServer(self.childConnection, self.recvQ)
+        self.comServer: serialServer = serialServer(self.childConnection)
         self.comProcess: Process = Process(target=self.comServer.run, name="SerialServerProcess")
         self.bind("<<ReceivedResponse>>", self.responseHandler)
         self.resLT: Thread = Thread(target=self.responseListener, daemon=True, name="ResponseListenerThread")

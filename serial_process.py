@@ -1,22 +1,14 @@
-from multiprocessing import Process, Pipe, Queue
-from queue import Empty
-from threading import Thread, Event
-from serial.tools import list_ports
-from serial.tools.list_ports_common import ListPortInfo
 import time
 import serial
 from collections import deque
-
-
-def portList() -> list[ListPortInfo]:
-    return list_ports.comports()
+from queue import Empty
+from threading import Thread, Event
+from multiprocessing import Queue
 
 
 class serialServer:
-    def __init__(self, pipe, recvQ=None):
+    def __init__(self, pipe):
         self.pipe = pipe
-        self.recvQ = recvQ
-
         self.running: bool = True
         self.port: serial.Serial = serial.Serial(port=None, timeout=None)
         self.portStr: str = ""
@@ -110,9 +102,10 @@ class serialServer:
                     parts = byteBuffer.split(b"\n")
 
                     for part in parts[:-1]:
-                        self.recvQ.put({"tag": "INFO", "entry": part.decode("utf-8") + "\n"})
+                        # self.recvQ.put({"tag": "INFO", "entry": part.decode("utf-8") + "\n"})
                         # Optional: place log/pipe code here
-
+                        print(f"Received: {part.decode('utf-8')}")
+                        pass
                     byteBuffer = bytearray(parts[-1])
 
                 except serial.SerialException as e:
