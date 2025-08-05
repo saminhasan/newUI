@@ -1,10 +1,11 @@
+import tkinter as tk
 import customtkinter as ctk
+from PIL import Image
 from tkinter import filedialog, messagebox
 from multiprocessing import Process, Pipe, Queue
 from threading import Thread, Event
 from appModel import FSM
 import time
-from UI.custom_tabview import CustomTabview
 from UI.custom_combobox import CustomComboBox
 from serial_process import serialServer, portList
 from queue import Empty
@@ -13,6 +14,12 @@ WIDTH: int = 960
 HEIGHT: int = 480
 MAX_LINES = 1000
 
+usb_icon = Image.open("Icons/usb.png")
+usb_off_icon = Image.open("Icons/usb_off.png")
+play_icon = Image.open("Icons/play.png")
+pause_icon = Image.open("Icons/pause.png")
+stop_icon = Image.open("Icons/stop.png")
+
 
 class App(ctk.CTk):
     def __init__(self):
@@ -20,46 +27,23 @@ class App(ctk.CTk):
         self.seq: int = 0
         self.running: bool = True
         self.response: dict = {}
-        self.recvQ: Queue = Queue()
         self.parentConnection, self.childConnection = Pipe()
         self.fsm: FSM = FSM()
         self.create_widgets()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.configure_widgets(self.fsm.available_transitions(), self.fsm.state)
-        self.comServer: serialServer = serialServer(self.childConnection, self.recvQ)
-        self.comProcess: Process = Process(target=self.comServer.run, name="SerialServerProcess")
         self.bind("<<ReceivedResponse>>", self.responseHandler)
         self.resLT: Thread = Thread(target=self.responseListener, daemon=True, name="ResponseListenerThread")
-        self.after(0, self.dataHandler)
 
     def create_widgets(self):
-        self.title("UI")
-        self.geometry(f"{WIDTH}x{HEIGHT}")
+        self.title("Hexapod Controller")
+        # self.geometry(f"{WIDTH}x{HEIGHT}")
         self.resizable(True, True)
-        self.minsize(WIDTH, HEIGHT)
+        # self.minsize(WIDTH, HEIGHT)
         self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=5)
-        self.grid_columnconfigure(0, weight=5)
-        self.grid_columnconfigure(1, weight=0)
-        self.tabL: CustomTabview = CustomTabview(self)
-        self.tabL.grid(row=1, column=0, sticky="nsew", padx=(10, 10), pady=(10, 10))
-        self.logTab = self.tabL.add("  Log  ")
-        self.logTab.grid_rowconfigure(0, weight=1)
-        self.logTab.grid_columnconfigure(0, weight=1)
-        self.logTerminal: ctk.CTkTextbox = ctk.CTkTextbox(self.logTab)
-        self.logTerminal.tag_config("info", foreground="green")
-        self.logTerminal.tag_config("warning", foreground="orange")
-        self.logTerminal.tag_config("error", foreground="red")
-        self.logTerminal.tag_config("debug", foreground="gray")
-        self.logTerminal.grid(row=0, column=0, sticky="nsew", padx=(10, 10), pady=(10, 10))
-        self.logTerminal.configure(state="disabled")
-
-        self.stateTab: CustomTabview = self.tabL.add("  State  ")
-        self.dataTab: CustomTabview = self.tabL.add("  Data  ")
-
-        self.tabR: CustomTabview = CustomTabview(self)
-        self.tabR.grid(row=1, column=1, sticky="nsew", padx=(10, 10), pady=(10, 10))
-        self.controlPanel: ctk.CTkFrame = self.tabR.add("Control Panel")
+        self.grid_columnconfigure(0, weight=1)
+        self.controlPanel: ctk.CTkFrame = ctk.CTkFrame(self, corner_radius=10)
+        self.controlPanel.grid(row=0, column=0, sticky="nsew")
         self.controlPanelWidgets: dict = {}
         for col in range(6):
             self.controlPanel.grid_columnconfigure(col, weight=1)
@@ -74,13 +58,38 @@ class App(ctk.CTk):
         )
         self.portSelect.grid(row=0, column=0, columnspan=3, sticky="we", padx=(10, 5), pady=(10, 10))
         self.controlPanelWidgets["portSelect"] = self.portSelect
-        self.connectionSegment = ctk.CTkSegmentedButton(self.controlPanel, values=["C", "D"], dynamic_resizing=False)
-        self.connectionSegment.grid(row=0, column=4, columnspan=4, sticky="we", padx=(5, 10), pady=(10, 10))
-        self.controlPanelWidgets["connect"] = self.connectionSegment._buttons_dict["C"]
-        self.controlPanelWidgets["disconnect"] = self.connectionSegment._buttons_dict["D"]
-        self.controlPanelWidgets["connect"].configure(command=lambda: self.requestHandler("connect"))
-        self.controlPanelWidgets["disconnect"].configure(command=lambda: self.requestHandler("disconnect"))
-        self.enableBtn = ctk.CTkButton(self.controlPanel, text="ENABLE", command=lambda: self.requestHandler("enable"))
+
+        # Connection buttons frame
+        self.connectionFrame = ctk.CTkFrame(self.controlPanel)
+        self.connectionFrame.grid(row=0, column=4, columnspan=2, sticky="we", padx=(5, 10), pady=(10, 10))
+        self.connectionFrame.grid_columnconfigure(0, weight=1)
+        self.connectionFrame.grid_columnconfigure(1, weight=1)
+
+        self.connectBtn = ctk.CTkButton(
+            self.connectionFrame,
+            text="",
+            command=lambda: self.requestHandler("connect"),
+            image=ctk.CTkImage(light_image=usb_icon, dark_image=usb_icon),
+            hover_color="green4",
+            fg_color="darkgreen",
+        )
+        self.connectBtn.grid(row=0, column=0, sticky="nsew", padx=(5, 2.5), pady=5)
+        self.disconnectBtn = ctk.CTkButton(
+            self.connectionFrame,
+            text="",
+            command=lambda: self.requestHandler("disconnect"),
+            image=ctk.CTkImage(light_image=usb_off_icon, dark_image=usb_off_icon),
+        )
+        self.disconnectBtn.grid(row=0, column=1, sticky="nsew", padx=(2.5, 5), pady=5)
+
+        self.controlPanelWidgets["connect"] = self.connectBtn
+        self.controlPanelWidgets["disconnect"] = self.disconnectBtn
+        self.enableBtn = ctk.CTkButton(
+            self.controlPanel,
+            text="ENABLE",
+            command=lambda: self.requestHandler("enable"),
+            # fg_color="transparent",
+        )
         self.enableBtn.grid(row=1, column=0, rowspan=2, columnspan=6, sticky="nsew", padx=(10, 10), pady=(10, 10))
         self.controlPanelWidgets["enable"] = self.enableBtn
         self.uploadBtn: ctk.CTkButton = ctk.CTkButton(
@@ -88,16 +97,25 @@ class App(ctk.CTk):
         )
         self.uploadBtn.grid(row=3, column=0, columnspan=6, rowspan=2, sticky="nsew", padx=(10, 10), pady=(10, 10))
         self.controlPanelWidgets["upload"] = self.uploadBtn
-        self.playbackSegment: ctk.CTkSegmentedButton = ctk.CTkSegmentedButton(
-            self.controlPanel, values=["►", "||", "■"], state="normal", dynamic_resizing=False
-        )
-        self.playbackSegment.grid(row=5, column=0, columnspan=6, rowspan=2, sticky="nsew", padx=(10, 10), pady=(10, 10))
-        self.controlPanelWidgets["play"] = self.playbackSegment._buttons_dict["►"]
-        self.controlPanelWidgets["pause"] = self.playbackSegment._buttons_dict["||"]
-        self.controlPanelWidgets["stop"] = self.playbackSegment._buttons_dict["■"]
-        self.controlPanelWidgets["play"].configure(command=lambda: self.requestHandler("play"))
-        self.controlPanelWidgets["pause"].configure(command=lambda: self.requestHandler("pause"))
-        self.controlPanelWidgets["stop"].configure(command=lambda: self.requestHandler("stop"))
+
+        # Playback buttons frame
+        self.playbackFrame = ctk.CTkFrame(self.controlPanel)
+        self.playbackFrame.grid(row=5, column=0, columnspan=6, rowspan=2, sticky="nsew", padx=(10, 10), pady=(10, 10))
+        self.playbackFrame.grid_columnconfigure(0, weight=1)
+        self.playbackFrame.grid_columnconfigure(1, weight=1)
+        self.playbackFrame.grid_columnconfigure(2, weight=1)
+        self.playbackFrame.grid_rowconfigure(0, weight=1)
+
+        self.playBtn = ctk.CTkButton(self.playbackFrame, text="►", command=lambda: self.requestHandler("play"))
+        self.playBtn.grid(row=0, column=0, sticky="nsew", padx=(10, 5), pady=10)
+        self.pauseBtn = ctk.CTkButton(self.playbackFrame, text="||", command=lambda: self.requestHandler("pause"))
+        self.pauseBtn.grid(row=0, column=1, sticky="nsew", padx=(5, 5), pady=10)
+        self.stopBtn = ctk.CTkButton(self.playbackFrame, text="■", command=lambda: self.requestHandler("stop"))
+        self.stopBtn.grid(row=0, column=2, sticky="nsew", padx=(5, 10), pady=10)
+
+        self.controlPanelWidgets["play"] = self.playBtn
+        self.controlPanelWidgets["pause"] = self.pauseBtn
+        self.controlPanelWidgets["stop"] = self.stopBtn
         self.disableBtn: ctk.CTkButton = ctk.CTkButton(
             self.controlPanel, text="EStop", command=lambda: self.requestHandler("disable"), fg_color="red4", hover_color="red2"
         )
@@ -121,6 +139,10 @@ class App(ctk.CTk):
                 current = w.cget("state")
                 if current != "normal":
                     w.configure(state="normal")
+        if current_state not in ["DISCONNECTED", "IDLE", "ERROR"]:
+            self.connectBtn.configure(fg_color="chartreuse")
+        else:
+            self.connectBtn.configure(fg_color="darkgreen")
 
     def dropdown_callback(self):
         self.portsDict = {
@@ -134,12 +156,13 @@ class App(ctk.CTk):
             self.portSelect.configure(values=[])
 
     def fileHandler(self, event_name="upload"):
-        file_path = filedialog.askopenfilename(title="Select File", filetypes=[("All Files", "*.*")])
-        if file_path:  # call checking function here or maybe even plot the file
-            self.requestHandler(event_name, filePath=file_path)
-        else:
-            messagebox.showwarning("No File Selected", "Please select a file to upload.")
-            self.fileHandler()
+        # file_path = filedialog.askopenfilename(title="Select File", filetypes=[("All Files", "*.*")])
+        # if file_path:  # call checking function here or maybe even plot the file
+        #     self.requestHandler(event_name, filePath=file_path)
+        # else:
+        #     messagebox.showwarning("No File Selected", "Please select a file to upload.")
+        #     self.fileHandler()
+        self.requestHandler(event_name, filePath="file_path_placeholder")
 
     def requestHandler(self, event_name, **kwargs):
         eventDict = {"event": event_name, "seq": self.seq}
@@ -147,6 +170,7 @@ class App(ctk.CTk):
             eventDict.update(kwargs)
         self.parentConnection.send(eventDict)
         self.seq += 1
+        self.childConnection.send(eventDict)
 
     def responseListener(self):
         while self.running:
@@ -167,35 +191,7 @@ class App(ctk.CTk):
                 raise (f"Event {event} not in: {self.fsm.available_transitions()}")
         self.response = {}
 
-    def dataHandler(self, VirtualEvent=None):  # add tags for info warning error and stuff
-        data = []
-        while not self.recvQ.empty():
-            try:
-                data.append(self.recvQ.get_nowait())
-            except Empty:
-                pass
-        if self.running:
-            if data:
-                self.updateLog(data)
-            self.after(10, self.dataHandler)
-
-    def updateLog(self, data):
-        # print(data)
-        data_str = "".join(f"{item['tag']}:{item['entry']}" for item in data)
-        self.logTerminal.configure(state="normal")
-        self.logTerminal.insert("end", data_str)
-
-        num_lines = int(self.logTerminal.index("end-1c").split(".")[0])
-        if num_lines > MAX_LINES:
-            self.logTerminal.delete("1.0", f"{num_lines - MAX_LINES}.0")
-        self.logTerminal.configure(state="disabled")
-
-        _, last = self.logTerminal.yview()  # Auto Scroll to the end of the log terminal
-        if last > 0.8:
-            self.logTerminal.yview("end")
-
     def run(self):
-        self.comProcess.start()
         self.resLT.start()
         self.mainloop()
 
@@ -204,11 +200,7 @@ class App(ctk.CTk):
         self.requestHandler("quit")
         if self.resLT.is_alive():
             self.resLT.join()
-        self.dataHandler()
-        self.comProcess.join()
         self.parentConnection.close()
-        self.recvQ.close()
-        self.recvQ.join_thread()
         self.destroy()
 
 
