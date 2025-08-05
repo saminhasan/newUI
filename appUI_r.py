@@ -9,10 +9,6 @@ from threading import Thread
 from serial_process import serialServer
 
 
-def portList() -> list[list_ports_common.ListPortInfo]:
-    return list_ports.comports()
-
-
 WIDTH: int = 800
 HEIGHT: int = 480
 
@@ -21,6 +17,10 @@ usb_off_icon = Image.open("Icons/usb_off.png")
 play_icon = Image.open("Icons/play.png")
 pause_icon = Image.open("Icons/pause.png")
 stop_icon = Image.open("Icons/stop.png")
+
+
+def portList() -> list[list_ports_common.ListPortInfo]:
+    return list_ports.comports()
 
 
 class App(ctk.CTk):

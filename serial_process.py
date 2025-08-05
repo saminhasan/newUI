@@ -51,7 +51,6 @@ class serialServer:
         return True
 
     def SerialRequestSender(self):
-        print("SerialRequestSender thread started.")
         while self.running:
             request = self.pipe.recv()
             status = False
@@ -59,10 +58,12 @@ class serialServer:
                 self.portStr = request["port"]
                 self.port.port = self.portStr
                 print(f"{self.portStr=}")
+
             if request["event"] == "connect":
                 status = self.connect()
                 if status and self.listen:
                     self.listen.set()
+
             if request["event"] == "disconnect":
                 status = self.disconnect()
                 if status and self.listen:
@@ -71,10 +72,30 @@ class serialServer:
             if request["event"] == "upload":
                 self.filePath = request["filePath"]
                 print(f"{self.filePath=}")
+
+            if request["event"] == "play":
+                pass
+
+            if request["event"] == "pause":
+                pass
+
+            if request["event"] == "stop":
+                pass
+
+            if request["event"] == "estop":
+                pass
+
+            if request["event"] == "reset":
+                status = self.disconnect()
+                if status and self.listen:
+                    self.listen.clear()
+
             if request["event"] == "quit":  # Handle additional quit logic from here such as sending stop signal to teensy
                 self.running = False
                 self.listen.set()
                 self.listen.clear()
+
+            # Should be done onRecieve from Teensy
             response = request
             response["status"] = "ACK" if status else "NAK"
             try:
@@ -86,11 +107,9 @@ class serialServer:
                 self.listen.clear()
             except Exception as e:
                 print(f"Error sending response: {e}")
-        print("sendRequest thread stopped.")
 
     def SerialListener(self):
         byteBuffer = bytearray()  # bytes returned from serial read is immutable, so we use bytearray for mutability
-        print("Listener thread started.")
         while self.running:
             self.listen.wait()
             while self.running and self.listen.is_set():
@@ -115,7 +134,6 @@ class serialServer:
 
                 except Exception as e:
                     print(f"Exception: {e}")
-        print("Listener thread stopped.")
 
     def run(self):
         print("Serial server started.")
