@@ -4,7 +4,7 @@ from tkinter import filedialog, messagebox
 from UI.custom_combobox import CustomComboBox
 from serial.tools import list_ports, list_ports_common
 from multiprocessing import Process, Pipe
-from appModel import FSM
+from model import FSM
 from threading import Thread
 from serial_process import serialServer
 

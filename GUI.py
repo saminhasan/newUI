@@ -2,7 +2,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 from multiprocessing import Process, Pipe, Queue
 from threading import Thread, Event
-from appModel import FSM
+from model import FSM
 import time
 from UI.custom_tabview import CustomTabview
 from UI.custom_combobox import CustomComboBox
