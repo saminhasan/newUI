@@ -16,14 +16,14 @@ def create_packet(seq: int, _payload: bytes) -> bytearray:
         raise TypeError("Payload must be of type bytes")
 
     _start_marker = b"\x01"
-    _payload_len = struct.pack("<I", len(_payload))
+    _packet_len = struct.pack("<I", len(_payload) + 16)
     _seq = struct.pack("<I", ctypes.c_uint32(seq).value)
     _system_id = b"\xff"
     _axis_id = bytes([(1 << 7) | (0 << 6) | (0 << 5) | (0 << 4) | (0 << 3) | (0 << 2) | (0 << 1) | 0])
-    crc_input = _start_marker + _payload_len + _seq + _system_id + _axis_id + _payload
+    crc_input = _packet_len + _seq + _system_id + _axis_id + _payload
     _crc = struct.pack("<I", zlib.crc32(crc_input) & 0xFFFFFFFF)
     _end_marker = b"\x04"
-    return bytearray(_start_marker + _payload_len + _seq + _system_id + _axis_id + _payload + _crc + _end_marker)
+    return bytearray(_start_marker + _packet_len + _seq + _system_id + _axis_id + _payload + _crc + _end_marker)
 
 
 def heartbeat(seq: int) -> bytearray:
