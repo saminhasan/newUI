@@ -63,6 +63,8 @@ class serialServer:
                 status = self.disconnect()
                 if status and self.listen:
                     self.listen.clear()
+            if request["event"] == "enable":
+                pass
 
             if request["event"] == "upload":
                 self.filePath = request["filePath"]

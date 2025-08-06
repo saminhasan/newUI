@@ -2,17 +2,10 @@
 #define IMPORTS_H
 
 #include <Arduino.h>
-uint32_t counter = 0; // Global counter variable
-IntervalTimer timer; // Timer for periodic tasks
-
-
-void TimerCallback() {
-    if(Serial.dtr())
-    {
-        // Serial.printf("%lu | %lu | %lu | %lu\n", counter, micros(), millis(), UINT32_MAX-counter);
-        Serial.printf("%10lu | %10lu | %10lu | %10lu%*c\n",counter,micros(),millis(),UINT32_MAX - counter,462, ' ');
-        counter++;
-    }
-
-}
+#include <RingBuffer.h>
+# define USB_SERIAL_BUFFER_SIZE 512
+# define PACKET_BUFFER_SIZE 8388608 // 8 MB
+uint8_t serialBuffer[USB_SERIAL_BUFFER_SIZE];
+EXTMEM uint8_t ringBuffer[PACKET_BUFFER_SIZE];
+RingBuffer<uint8_t, PACKET_BUFFER_SIZE> packetBuffer(ringBuffer);
 #endif // IMPORTS_H
