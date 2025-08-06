@@ -154,6 +154,7 @@ class App(ctk.CTk):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def configure_widgets(self, to_enable=None, current_state=None) -> None:
+        return
         enabled_widgets = set(to_enable or ())
         for key, w in self.controlPanelWidgets.items():
             target_state = "normal" if key in enabled_widgets else "disabled"
@@ -217,6 +218,7 @@ class App(ctk.CTk):
                 self.after(0, lambda: self.event_generate("<<ReceivedResponse>>", when="tail"))
 
     def responseHandler(self, VirtualEvent=None) -> None:
+        return
         event = self.response.get("event", None)
         if event is not None:
             if event in self.fsm.available_transitions():
@@ -224,7 +226,7 @@ class App(ctk.CTk):
                 if event != "quit":
                     self.configure_widgets(self.fsm.available_transitions(), self.fsm.state)
             else:
-                raise (f"Event {event} not in: {self.fsm.available_transitions()}")
+                raise ValueError(f"Event {event} not in: {self.fsm.available_transitions()}")
         self.response = {}
 
     def run(self) -> None:

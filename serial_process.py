@@ -4,6 +4,7 @@ from collections import deque
 from queue import Empty
 from threading import Thread, Event
 from multiprocessing import Queue
+from Hexlink.commands import *
 
 
 class serialServer:
@@ -14,6 +15,7 @@ class serialServer:
         self.portStr: str = ""
         self.filePath: str = ""
         self.byteBuffer = Queue()
+        self.sequence = 0
 
     @property
     def connected(self) -> bool:
@@ -64,20 +66,24 @@ class serialServer:
                 if status and self.listen:
                     self.listen.clear()
             if request["event"] == "enable":
-                pass
+                self.port.write(enable(self.sequence))
+                self.sequence += 1
 
             if request["event"] == "upload":
                 self.filePath = request["filePath"]
                 print(f"{self.filePath=}")
 
             if request["event"] == "play":
-                pass
+                self.port.write(play(self.sequence))
+                self.sequence += 1
 
             if request["event"] == "pause":
-                pass
+                self.port.write(pause(self.sequence))
+                self.sequence += 1
 
             if request["event"] == "stop":
-                pass
+                self.port.write(stop(self.sequence))
+                self.sequence += 1
 
             if request["event"] == "estop":
                 # send stop signal to teensy
