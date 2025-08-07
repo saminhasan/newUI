@@ -1,7 +1,6 @@
 #ifndef RING_BUFFER
 #define RING_BUFFER
 #include <stddef.h>
-
 template <typename T, size_t SIZE>
 class RingBuffer
 {
@@ -28,7 +27,6 @@ public:
         }
         return false; // Buffer is full
     }
-
     bool pop(T &item)
     {
         if (count > 0)
@@ -46,8 +44,7 @@ public:
         {
             T currentItem = buffer[tail];
             tail = (tail + 1) % SIZE;
-            count--;
-            
+            count--;            
             if (currentItem == target)
             {
                 return true; // Found and removed target
@@ -59,17 +56,14 @@ public:
     {
         return count;
     }
-
     bool isEmpty() const
     {
         return count == 0;
     }
-
     bool isFull() const
     {
         return count == SIZE;
     }
-
     size_t readBytes(uint8_t *dest, size_t n)
     {
         if (n == 0 || count == 0 || dest == nullptr)
@@ -116,14 +110,11 @@ public:
         size_t space = SIZE - count;
         if (avail == 0 || space == 0)
             return 0;
-
         size_t toRead = (avail < space) ? avail : space;
-
         size_t headToEnd = SIZE - head;
         size_t chunk1 = (toRead < headToEnd) ? toRead : headToEnd;
         size_t n1 = serial.readBytes(reinterpret_cast<char *>(buffer + head), chunk1);
         count += n1;
-
         head = (head + n1) % SIZE;
         if (n1 < chunk1 || n1 == toRead)
             return n1;
@@ -136,5 +127,4 @@ public:
 
 
 };
-
 #endif // RING_BUFFER

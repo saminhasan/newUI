@@ -1,156 +1,160 @@
 #ifndef PACKET_PARSER_H
 #define PACKET_PARSER_H
 
-#include <stdint.h>
-#include <stddef.h>
+#include <globals.h>
+#include <RingBuffer.h>
+#include <FastCRC.h>
+#include <MsgID.h>
 
-// Packet structure constants
-#define START_MARKER 0x01
-#define END_MARKER 0x04
-#define PACKET_HEADER_SIZE 11  // start + len + seq + sys + axis
-#define PACKET_FOOTER_SIZE 5   // crc + end
-#define MIN_PACKET_SIZE 16     // header + footer (no payload)
-
-enum class ParseState {
-    READ_WAIT,
-    READ_LENGTH,
-    READ_SEQ,
-    READ_SYS_ID,
-    READ_AXIS_ID,
-    READ_PAYLOAD,
-    READ_CRC,
-    READ_END,
-    PACKET_COMPLETE,
+void printArray(float arr[][6], size_t length)
+{
+    for (size_t i = length - 1; i < length; i++)
+    {
+        Debug.printf("%zu : %f %f %f %f %f %f\n", i + 1, arr[i][0], arr[i][1], arr[i][2], arr[i][3], arr[i][4], arr[i][5]);
+    }
+}
+enum class ParseState
+{
+    AWAIT_START,
+    AWAIT_HEADER,
+    AWAIT_PAYLOAD,
+    PACKET_FOUND,
+    PACKET_HANDLING,
     PACKET_ERROR
 };
+static const char *stateNames[] = {
+    "AWAIT_START", "AWAIT_HEADER", "AWAIT_PAYLOAD",
+    "PACKET_FOUND", "PACKET_HANDLING", "PACKET_ERROR"};
+// Packet information structure
+struct PacketInfo
+{
+    union
+    {
+        struct __attribute__((packed))
+        {
+            uint32_t packetLength;
+            uint32_t sequenceNumber;
+            uint8_t systemId;
+            uint8_t axisId;
+            uint32_t crc;
+        };
+        uint8_t headerBytes[14];
+    };
 
-struct ParsedPacket {
-    uint32_t payloadLength;
-    uint32_t sequenceNumber;
-    uint8_t systemId;
-    uint8_t axisId;
-    uint8_t* payload;
-    uint32_t crc;
-    bool isValid;
-    
-    ParsedPacket() : payloadLength(0), sequenceNumber(0), systemId(0), 
-                     axisId(0), payload(nullptr), crc(0), isValid(false) {}
+    uint32_t payloadSize;
+    uint8_t msgID;
+    uint8_t isValid;
 };
+template <size_t bufferSize>// Forward declaration
+class Parser;
+template <size_t bufferSize> // Callback function type - takes a reference to the parser
+using PacketCallback = void (*)(Parser<bufferSize> &parser);
 
-class PacketParser {
-private:
-    ParseState state;
-    uint8_t buffer[4];  // Temp buffer for multi-byte fields
-    size_t bufferIndex;
-    size_t payloadBytesRead;
-    ParsedPacket currentPacket;
-    uint8_t* payloadBuffer;
-    size_t maxPayloadSize;
-    
-    uint32_t bytesToUint32(const uint8_t* bytes) {
-        return bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
-    }
-    
+template <size_t bufferSize>
+class Parser
+{
 public:
-    PacketParser(uint8_t* payloadBuf, size_t maxPayloadSz) 
-        : state(ParseState::READ_WAIT), bufferIndex(0), payloadBytesRead(0),
-          payloadBuffer(payloadBuf), maxPayloadSize(maxPayloadSz) {}
-    
-    bool processByte(uint8_t byte) {
-        switch (state) {
-            case ParseState::READ_WAIT:
-                if (byte == START_MARKER) {
-                    state = ParseState::READ_LENGTH;
-                    bufferIndex = 0;
-                    currentPacket = ParsedPacket();
-                }
-                break;
-                
-            case ParseState::READ_LENGTH:
-                buffer[bufferIndex++] = byte;
-                if (bufferIndex >= 4) {
-                    currentPacket.payloadLength = bytesToUint32(buffer);
-                    if (currentPacket.payloadLength > maxPayloadSize) {
-                        state = ParseState::PACKET_ERROR;
-                        return false;
-                    }
-                    state = ParseState::READ_SEQ;
-                    bufferIndex = 0;
-                }
-                break;
-                
-            case ParseState::READ_SEQ:
-                buffer[bufferIndex++] = byte;
-                if (bufferIndex >= 4) {
-                    currentPacket.sequenceNumber = bytesToUint32(buffer);
-                    state = ParseState::READ_SYS_ID;
-                }
-                break;
-                
-            case ParseState::READ_SYS_ID:
-                currentPacket.systemId = byte;  // Accept any system ID
-                state = ParseState::READ_AXIS_ID;
-                break;
-                
-            case ParseState::READ_AXIS_ID:
-                currentPacket.axisId = byte;    // Accept any axis ID
-                if (currentPacket.payloadLength > 0) {
-                    state = ParseState::READ_PAYLOAD;
-                    payloadBytesRead = 0;
-                    currentPacket.payload = payloadBuffer;
-                } else {
-                    state = ParseState::READ_CRC;
-                    bufferIndex = 0;
-                }
-                break;
-                
-            case ParseState::READ_PAYLOAD:
-                payloadBuffer[payloadBytesRead++] = byte;
-                if (payloadBytesRead >= currentPacket.payloadLength) {
-                    state = ParseState::READ_CRC;
-                    bufferIndex = 0;
-                }
-                break;
-                
-            case ParseState::READ_CRC:
-                buffer[bufferIndex++] = byte;
-                if (bufferIndex >= 4) {
-                    currentPacket.crc = bytesToUint32(buffer);
-                    state = ParseState::READ_END;
-                }
-                break;
-                
-            case ParseState::READ_END:
-                if (byte == END_MARKER) {
-                    currentPacket.isValid = true;
-                    state = ParseState::PACKET_COMPLETE;
-                    return true;  // Packet complete
-                } else {
-                    state = ParseState::PACKET_ERROR;
-                    return false;
-                }
-                break;
-                
-            default:
-                state = ParseState::READ_WAIT;
-                break;
+    uint32_t crc;
+    FastCRC32 CRC32;
+    PacketInfo pktInfo;
+    RingBuffer<uint8_t, bufferSize> packetBuffer;
+    ParseState parseState = ParseState::AWAIT_START;
+    ParseState lastState = ParseState::AWAIT_START;
+    PacketCallback<bufferSize> callback;
+    uint32_t stateStartTime = 0;
+    Parser(uint8_t *externalBuffer, PacketCallback<bufferSize> cb = nullptr)
+        : packetBuffer(externalBuffer), callback(cb) {};
+
+    void debugInfo()
+    {
+        if (lastState != parseState)
+        {
+            if (lastState != ParseState::AWAIT_START || stateStartTime != 0)
+            {
+                uint32_t timeSpent = micros() - stateStartTime;
+                Debug.printf("%s took %lu μs\n", stateNames[static_cast<int>(lastState)], timeSpent);
+            }
+            lastState = parseState;
+            stateStartTime = micros();
         }
-        return false;  // Packet not yet complete
     }
-    
-    const ParsedPacket& getPacket() const {
-        return currentPacket;
-    }
-    
-    void reset() {
-        state = ParseState::READ_WAIT;
-        bufferIndex = 0;
-        payloadBytesRead = 0;
-    }
-    
-    ParseState getState() const {
-        return state;
+    void parse()
+    {
+        // debugInfo();
+        switch (parseState)
+        {
+        case ParseState::AWAIT_START:
+            if (packetBuffer.popUntil(START_MARKER))
+            {
+                parseState = ParseState::AWAIT_HEADER;
+            }
+            break;
+
+        case ParseState::AWAIT_HEADER:
+            if (packetBuffer.size() >= 14)
+            {
+                packetBuffer.readBytes(pktInfo.headerBytes, 14);
+                crc = CRC32.crc32(pktInfo.headerBytes, 10);
+                pktInfo.payloadSize = pktInfo.packetLength - MIN_PACKET_SIZE;
+                if (pktInfo.payloadSize > bufferSize - MIN_PACKET_SIZE || pktInfo.payloadSize < 0)
+                {
+                    Debug.printf("Invalid packet size: %lu\n", pktInfo.payloadSize);
+                    parseState = ParseState::PACKET_ERROR;
+                }
+                else
+                {
+                    parseState = ParseState::AWAIT_PAYLOAD;
+                }
+            }
+            break;
+
+        case ParseState::AWAIT_PAYLOAD:
+            if (packetBuffer.size() >= (pktInfo.payloadSize + 1))
+                parseState = ParseState::PACKET_FOUND;
+            break;
+
+        case ParseState::PACKET_FOUND:
+        {
+            for (size_t i = 0; i < pktInfo.payloadSize; i++)
+                crc = CRC32.crc32_upd(&packetBuffer[i], 1);
+            pktInfo.isValid = (crc == pktInfo.crc) && (packetBuffer[pktInfo.payloadSize] == END_MARKER);
+            if (pktInfo.isValid)
+            {
+                packetBuffer.pop(pktInfo.msgID);
+                parseState = ParseState::PACKET_HANDLING;
+            }
+            else
+            {
+                if (!(packetBuffer[pktInfo.payloadSize] == END_MARKER))
+                    Debug.printf(" Invalid End marker  (expected: 0x%02X, found: 0x%02X)\n", END_MARKER, packetBuffer[pktInfo.payloadSize]);
+                else if (!(crc == pktInfo.crc))
+                    Debug.printf(" Invalid CRC  (expected: 0x%08X, computed: 0x%08X)\n", pktInfo.crc, crc);
+                else
+                    Debug.printf("Unknown error\n");
+                Debug.printf("Packet Info: len=%u, size=%u, seq=%u, sysID=%u, axisID=%u, msgID=0x%02X\n", 
+                    pktInfo.packetLength, pktInfo.payloadSize, pktInfo.sequenceNumber, pktInfo.systemId, pktInfo.axisId, pktInfo.msgID);
+            }
+            break;
+        }
+        case ParseState::PACKET_HANDLING:
+        {
+            if (callback)
+                callback(*this);
+            else
+                Debug.printf("No callback set for packet handling\n");
+            parseState = ParseState::AWAIT_START;
+            break;
+        }
+        case ParseState::PACKET_ERROR:
+        {
+            // Debug.println("Packet error, resetting parser state");
+            parseState = ParseState::AWAIT_START;
+            break;
+        }
+        default:
+            parseState = ParseState::AWAIT_START;
+            break;
+        }
     }
 };
-
 #endif // PACKET_PARSER_H
