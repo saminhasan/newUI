@@ -5,6 +5,7 @@ from queue import Empty
 from threading import Thread, Event
 from multiprocessing import Queue
 from Hexlink.commands import *
+from more_itertools import chunked
 
 
 class serialServer:
@@ -15,7 +16,7 @@ class serialServer:
         self.portStr: str = ""
         self.filePath: str = ""
         self.byteBuffer = Queue()
-        self.sequence = 0
+        self.sequence = 1000
 
     @property
     def connected(self) -> bool:
@@ -66,24 +67,32 @@ class serialServer:
                 if status and self.listen:
                     self.listen.clear()
             if request["event"] == "enable":
-                self.port.write(enable(self.sequence))
+                print(f"{self.sequence=}")
+                self.sendData(enable(self.sequence))
                 self.sequence += 1
 
             if request["event"] == "upload":
+                print(f"{self.sequence=}")
                 self.filePath = request["filePath"]
-                print(f"{self.filePath=}")
+                # print(f"{self.filePath=}")
+                data_array = np.arange(self.sequence * 6).reshape((self.sequence, 6)).astype(np.float32) + 1
+                self.sendData(data(self.sequence, data_array))
+                self.sequence += 1
 
             if request["event"] == "play":
-                self.port.write(play(self.sequence))
-                self.sequence += 1
+                self.sendData(play(self.sequence))
+                self.sequence += 1000
+                print(f"{self.sequence=}")
 
             if request["event"] == "pause":
-                self.port.write(pause(self.sequence))
-                self.sequence += 1
+                self.sendData(pause(self.sequence))
+                self.sequence -= 1000
+                print(f"{self.sequence=}")
 
             if request["event"] == "stop":
-                self.port.write(stop(self.sequence))
-                self.sequence += 1
+                self.sendData(stop(self.sequence))
+                self.sequence += 5000
+                print(f"{self.sequence=}")
 
             if request["event"] == "estop":
                 # send stop signal to teensy
@@ -114,6 +123,19 @@ class serialServer:
                 self.listen.clear()
             except Exception as e:
                 print(f"Error sending response: {e}")
+
+    def sendData(self, data: bytes):
+        if not self.connected:
+            print("Not connected to any port.")
+            return False
+        try:
+            print(f"Sending {len(data)} bytes of data in {np.ceil(len(data) / 512)} chunks.")
+            for chunk in chunked(data, 512):
+                self.port.write(bytes(chunk))
+            return True
+        except serial.SerialException as e:
+            print(f"Error sending data: {e}")
+            return False
 
     def SerialListener(self):
         byteBuffer = bytearray()  # bytes returned from serial read is immutable, so we use bytearray for mutability

@@ -4,21 +4,32 @@
 #include <Arduino.h>
 #include <RingBuffer.h>
 #include <FastCRC.h>
+#include <MsgID.h>
 // Packet constants
-#define START_MARKER 0x01
-#define END_MARKER 0x04
+#define MB 1024*1024
 #define MIN_PACKET_SIZE 16
+#define MAX_PACKET_SIZE 1*MB // 1 MB (1 MB for the packet buffer)
+#define UB_SIZE 512
+#define PACKET_BUFFER_SIZE MAX_PACKET_SIZE // 1 MB
+#define N (PACKET_BUFFER_SIZE/(6*sizeof(float)))
+const uint32_t maxArrayLength = N;
+uint32_t arrayLength = 0; 
 
-// Buffer sizes
-#define USB_SERIAL_BUFFER_SIZE 512
-#define PACKET_BUFFER_SIZE 8388608 // 8 MB
-
-// Packet parsing state
-enum class ParseState {
-    WAITING_START,
-    PACKET_FOUND,
-    PACKET_ERROR
+typedef union {
+    float data[N][6];            // Access as 2D float array
+    uint8_t bytes[N * 6 * sizeof(float)]; // Access raw bytes
+} DataBuffer;
+EXTMEM DataBuffer db;
+enum class ParseState
+{
+  WAITING_START,
+  WAITING_HEADER,
+  WAITING_PAYLOAD,
+  PACKET_FOUND,
+  HANDLING_PACKET,
+  PACKET_ERROR
 };
+ParseState parseState = ParseState::WAITING_START;
 
 // Packet information structure
 struct PacketInfo {
@@ -26,18 +37,20 @@ struct PacketInfo {
     uint32_t sequenceNumber;
     uint8_t systemId;
     uint8_t axisId;
+    uint32_t payloadSize;
     uint8_t msgID;
     uint32_t crc;
     bool isValid;
-    PacketInfo() : packetLength(0), sequenceNumber(0), systemId(0), axisId(0), msgID(0), crc(0), isValid(false) {}
+    PacketInfo() : packetLength(0), sequenceNumber(0), systemId(0), axisId(0), payloadSize(0), msgID(0), crc(0), isValid(false) {}
 };
+PacketInfo pktInfo;
 
 // Global variables
-uint8_t serialBuffer[USB_SERIAL_BUFFER_SIZE];
 EXTMEM uint8_t ringBuffer[PACKET_BUFFER_SIZE];
 RingBuffer<uint8_t, PACKET_BUFFER_SIZE> packetBuffer(ringBuffer);
-ParseState parseState = ParseState::WAITING_START;
-PacketInfo pktInfo;
 FastCRC32 CRC32;
 uint32_t crc;
+
+
+
 #endif // IMPORTS_H

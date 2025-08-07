@@ -6,8 +6,12 @@ template <typename T, size_t SIZE>
 class RingBuffer
 {
 public:
-    RingBuffer(T* externalBuffer) : buffer(externalBuffer), head(0), tail(0), count(0) {}
-
+    RingBuffer(T *externalBuffer) : buffer(externalBuffer), head(0), tail(0), count(0) {}
+    const T &operator[](size_t index) const
+    {
+        size_t actualIndex = (tail + index) % SIZE;
+        return buffer[actualIndex];
+    }
     bool push(const T &item)
     {
         if (count < SIZE)
@@ -110,8 +114,9 @@ public:
         head = (head + n2) % SIZE;
         return n1 + n2;
     }
+
 private:
-    T* buffer;
+    T *buffer;
     size_t head;
     size_t tail;
     size_t count;
