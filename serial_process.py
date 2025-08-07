@@ -7,6 +7,8 @@ from multiprocessing import Queue
 from Hexlink.commands import *
 from more_itertools import chunked
 
+np.set_printoptions(precision=6, suppress=True)
+
 
 class serialServer:
     def __init__(self, pipe):
@@ -92,7 +94,7 @@ class serialServer:
 
             if request["event"] == "stop":
                 self.sendData(stop(self.sequence))
-                self.sequence += 5000
+                self.sequence += 100_000
                 print(f"{self.sequence=}")
 
             if request["event"] == "estop":
@@ -130,9 +132,15 @@ class serialServer:
             print("Not connected to any port.")
             return False
         try:
-            print(f"{len(data)} bytes | {int(np.ceil(len(data) / 512))} chunks.")
-            for chunk in chunked(data, 512):
+            chunk_size = 512
+            print(f"{len(data)} bytes | {int(np.ceil(len(data) / chunk_size))} chunks.")
+            t0 = time.perf_counter_ns()
+            for chunk in chunked(data, chunk_size):
                 self.port.write(bytes(chunk))
+            # make sure dt is never zero
+            dt = time.perf_counter_ns() - t0 or 1
+            print(f"Speed: {len(data)*1e3/dt:.2f} MB/s")
+
             return True
         except serial.SerialException as e:
             print(f"Error sending data: {e}")

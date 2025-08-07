@@ -1,7 +1,16 @@
 #include "imports.h"
 #define Debug SerialUSB1
 byte b;
-
+enum class ParseState
+{
+  AWAIT_START,
+  AWAIT_HEADER,
+  AWAIT_PAYLOAD,
+  PACKET_FOUND,
+  PACKET_HANDLING,
+  PACKET_ERROR
+};
+ParseState parseState = ParseState::AWAIT_START;
 void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -17,18 +26,10 @@ void setup()
 void serialEvent()
 {
   packetBuffer.readStream(Serial);
-  /*
-    size_t available = Serial.available();
-    if (available > 0) {
-        size_t toRead = (available < USB_SERIAL_BUFFER_SIZE) ? available : USB_SERIAL_BUFFER_SIZE;
-        size_t bytesRead = Serial.readBytes(reinterpret_cast<char *>(serialBuffer), toRead);
-        packetBuffer.writeBytes(serialBuffer, bytesRead);
-    }
-  */
 }
 void printArray(float arr[][6], size_t length)
 {
-  for (size_t i = 0; i < length; i++)
+  for (size_t i = length-1; i < length; i++)
   {
     Debug.printf("%zu : %f %f %f %f %f %f\n", i + 1, arr[i][0], arr[i][1], arr[i][2], arr[i][3], arr[i][4], arr[i][5]);
   }
@@ -36,23 +37,16 @@ void printArray(float arr[][6], size_t length)
 
 void loop()
 {
-  // 1) Always pull in any new bytes
   serialEvent();
 
-  // 2) Update LED to reflect DTR state (non-blocking)
   digitalWrite(LED_BUILTIN, Serial.dtr());
 
-  // 3) State‐machine dispatch: only one packet stage per call
   switch (parseState)
   {
   case ParseState::AWAIT_START:
-    while (packetBuffer.pop(b))
+    if (packetBuffer.popUntil(START_MARKER))
     {
-      if (b == START_MARKER)
-      {
         parseState = ParseState::AWAIT_HEADER;
-        break;
-      }
     }
     break;
 
@@ -85,7 +79,12 @@ void loop()
       crc = CRC32.crc32_upd(&payloadByte, 1);
     }
     pktInfo.isValid = (crc == pktInfo.crc) && (packetBuffer[pktInfo.payloadSize] == END_MARKER) && (pktInfo.payloadSize > 0);
-    if (!pktInfo.isValid)
+    if (pktInfo.isValid)
+    {      packetBuffer.pop(pktInfo.msgID);
+      parseState = ParseState::PACKET_HANDLING;
+
+    }
+    else
     {
       Debug.println("Invalid packet (CRC or end‐marker mismatch)");
       Debug.printf("len: %u, size: %u, seq: %u, sysID: %u, axisID: %u, msgID: 0x%02X, CRC32: 0x%08X, CRC32: 0x%08X, isValid: %s, end: 0x%u\n",
@@ -94,11 +93,6 @@ void loop()
                    pktInfo.isValid ? "true" : "false", packetBuffer[pktInfo.payloadSize + 1]);
       parseState = ParseState::AWAIT_START;
       break;
-    }
-    else
-    {
-      packetBuffer.pop(pktInfo.msgID);
-      parseState = ParseState::PACKET_HANDLING;
     }
   }
   case ParseState::PACKET_HANDLING:
@@ -132,7 +126,6 @@ void loop()
         Debug.printf("Error: arrayLength %u > max %u\n", arrayLength, maxArrayLength);
       else
       {
-        // copy only the actual float data (skip index 0 which was msgID)
         packetBuffer.readBytes(db.bytes, pktInfo.payloadSize);
         Debug.printf("DATA: %u rows\n", arrayLength);
         printArray(db.data, arrayLength);

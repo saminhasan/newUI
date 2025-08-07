@@ -5,12 +5,17 @@
 template <typename T, size_t SIZE>
 class RingBuffer
 {
+private:
+    T *buffer;
+    size_t head;
+    size_t tail;
+    size_t count;
 public:
     RingBuffer(T *externalBuffer) : buffer(externalBuffer), head(0), tail(0), count(0) {}
     const T &operator[](size_t index) const
     {
-        size_t actualIndex = (tail + index) % SIZE;
-        return buffer[actualIndex];
+        size_t ringIndex = (tail + index) % SIZE;
+        return buffer[ringIndex];
     }
     bool push(const T &item)
     {
@@ -35,7 +40,21 @@ public:
         }
         return false; // Buffer is empty
     }
-
+    bool popUntil(const T &target)
+    {
+        while (count > 0)
+        {
+            T currentItem = buffer[tail];
+            tail = (tail + 1) % SIZE;
+            count--;
+            
+            if (currentItem == target)
+            {
+                return true; // Found and removed target
+            }
+        }
+        return false; // Target not found
+    }
     size_t size() const
     {
         return count;
@@ -115,11 +134,7 @@ public:
         return n1 + n2;
     }
 
-private:
-    T *buffer;
-    size_t head;
-    size_t tail;
-    size_t count;
+
 };
 
 #endif // RING_BUFFER

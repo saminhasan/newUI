@@ -18,16 +18,7 @@ typedef union {
     uint8_t bytes[maxArrayLength * 6 * sizeof(float)]; // Access raw bytes
 } DataBuffer;
 EXTMEM DataBuffer db;
-enum class ParseState
-{
-  AWAIT_START,
-  AWAIT_HEADER,
-  AWAIT_PAYLOAD,
-  PACKET_FOUND,
-  PACKET_HANDLING,
-  PACKET_ERROR
-};
-ParseState parseState = ParseState::AWAIT_START;
+
 
 // Packet information structure
 struct PacketInfo {
