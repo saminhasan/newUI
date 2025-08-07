@@ -6,18 +6,18 @@
 #include <FastCRC.h>
 #include <MsgID.h>
 // Packet constants
-#define MB 1024*1024
-#define MIN_PACKET_SIZE 16
-#define MAX_PACKET_SIZE 1*MB // 1 MB (1 MB for the packet buffer)
-#define UB_SIZE 512
-#define PACKET_BUFFER_SIZE MAX_PACKET_SIZE // 1 MB
-#define N (PACKET_BUFFER_SIZE/(6*sizeof(float)))
-const uint32_t maxArrayLength = N;
-uint32_t arrayLength = 0; 
+// Packet constants
+static constexpr size_t MB                   = 1024 * 1024;
+static constexpr size_t MIN_PACKET_SIZE      = 16;
+static constexpr size_t MAX_PACKET_SIZE      = size_t(7 * MB + MIN_PACKET_SIZE);               // 1 MB for the packet buffer
+static constexpr size_t UB_SIZE              = 512;
+static constexpr size_t PACKET_BUFFER_SIZE   = MAX_PACKET_SIZE;      // 1 MB
+static constexpr size_t maxArrayLength       = size_t((PACKET_BUFFER_SIZE - MIN_PACKET_SIZE)/ (6 * sizeof(float)));
+uint32_t arrayLength = 0;
 
 typedef union {
-    float data[N][6];            // Access as 2D float array
-    uint8_t bytes[N * 6 * sizeof(float)]; // Access raw bytes
+    float data[maxArrayLength][6];            // Access as 2D float array
+    uint8_t bytes[maxArrayLength * 6 * sizeof(float)]; // Access raw bytes
 } DataBuffer;
 EXTMEM DataBuffer db;
 enum class ParseState

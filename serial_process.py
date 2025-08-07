@@ -76,6 +76,7 @@ class serialServer:
                 self.filePath = request["filePath"]
                 # print(f"{self.filePath=}")
                 data_array = np.arange(self.sequence * 6).reshape((self.sequence, 6)).astype(np.float32) + 1
+                print(data_array[-1])
                 self.sendData(data(self.sequence, data_array))
                 self.sequence += 1
 
