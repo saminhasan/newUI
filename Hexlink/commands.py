@@ -24,7 +24,7 @@ def create_packet(seq: int, _payload: bytes) -> bytearray:
     crc_input = _packet_len + _seq + _system_id + _axis_id + _payload
     _crc = struct.pack("<I", zlib.crc32(crc_input) & 0xFFFFFFFF)
     _end_marker = b"\x04"
-    _raw_packet = bytearray(_start_marker + _packet_len + _seq + _system_id + _axis_id + _payload + _crc + _end_marker)
+    _raw_packet = bytearray(_start_marker + _packet_len + _seq + _system_id + _axis_id + _crc + _payload + _end_marker)
     # print(f"Packet Size : {len(_raw_packet)} bytes")
     return _raw_packet
 

@@ -31,10 +31,8 @@ void printArray(float arr[][6], size_t length)
 {
   for (size_t i = 0; i < length; i++)
   {
-    Debug.printf("%zu : %f %f %f %f %f %f\n", i + 1,
-                 arr[i][0], arr[i][1], arr[i][2],
-                 arr[i][3], arr[i][4], arr[i][5]);
-                 delayMicroseconds(10);
+    Debug.printf("%zu : %f %f %f %f %f %f\n", i + 1,arr[i][0], arr[i][1], arr[i][2],arr[i][3], arr[i][4], arr[i][5]);
+    delayMicroseconds(10);
   }
 }
 
@@ -61,24 +59,23 @@ void loop()
     break;
 
   case ParseState::WAITING_HEADER:
-    if (packetBuffer.size() >= 10)
+    if (packetBuffer.size() >= 14)
     {
-      uint8_t header[10];
-      packetBuffer.readBytes(header, 10);
+      uint8_t header[14];
+      packetBuffer.readBytes(header, 14);
       pktInfo.packetLength = uint32_t(header[0]) | (uint32_t(header[1]) << 8) | (uint32_t(header[2]) << 16) | (uint32_t(header[3]) << 24);
       pktInfo.sequenceNumber = uint32_t(header[4]) |(uint32_t(header[5]) << 8) |(uint32_t(header[6]) << 16) | (uint32_t(header[7]) << 24);
-
       pktInfo.systemId = header[8];
       pktInfo.axisId = header[9];
-      // payload = [ msgID (1 byte) + actual data... ]
-      pktInfo.payloadSize = pktInfo.packetLength - 16;
+      pktInfo.crc = uint32_t(header[10]) |(uint32_t(header[11]) << 8) |(uint32_t(header[12]) << 16) | (uint32_t(header[13]) << 24);
       crc = CRC32.crc32(header, 10);
+      pktInfo.payloadSize = pktInfo.packetLength - 16;
       parseState = ParseState::WAITING_PAYLOAD;
     }
     break;
 
   case ParseState::WAITING_PAYLOAD:
-    if (packetBuffer.size() >= (pktInfo.payloadSize + 5))
+    if (packetBuffer.size() >= (pktInfo.payloadSize + 1))
     {
       parseState = ParseState::PACKET_FOUND;
     }
@@ -86,22 +83,19 @@ void loop()
 
   case ParseState::PACKET_FOUND:
   {
-    pktInfo.crc = packetBuffer[pktInfo.payloadSize] |(packetBuffer[pktInfo.payloadSize + 1] << 8) |(packetBuffer[pktInfo.payloadSize + 2] << 16) |(packetBuffer[pktInfo.payloadSize + 3] << 24);
-
     for (size_t i = 0; i < pktInfo.payloadSize; i++)
     {
       uint8_t payloadByte = packetBuffer[i];
       crc = CRC32.crc32_upd(&payloadByte, 1);
     }
-    uint8_t endMarker = packetBuffer[pktInfo.payloadSize + 4];
-    pktInfo.isValid = (crc == pktInfo.crc) && (endMarker == END_MARKER) && (pktInfo.payloadSize > 0);
+    pktInfo.isValid = (crc == pktInfo.crc) && (packetBuffer[pktInfo.payloadSize] == END_MARKER) && (pktInfo.payloadSize > 0);
     if (!pktInfo.isValid)
     {
       Debug.println("Invalid packet (CRC or end‐marker mismatch)");
-      Debug.printf("len: %u, size: %u, seq: %u, sysID: %u, axisID: %u, msgID: 0x%02X, CRC32: 0x%08X, CRC32: 0x%08X, isValid: %s\n",
+      Debug.printf("len: %u, size: %u, seq: %u, sysID: %u, axisID: %u, msgID: 0x%02X, CRC32: 0x%08X, CRC32: 0x%08X, isValid: %s, end: 0x%u\n",
                    pktInfo.packetLength, pktInfo.payloadSize, pktInfo.sequenceNumber,
                    pktInfo.systemId, pktInfo.axisId, pktInfo.msgID, pktInfo.crc, crc,
-                   pktInfo.isValid ? "true" : "false");
+                   pktInfo.isValid ? "true" : "false", packetBuffer[pktInfo.payloadSize + 1]);
       parseState = ParseState::WAITING_START;
       break;
     }

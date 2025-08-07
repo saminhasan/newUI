@@ -129,7 +129,7 @@ class serialServer:
             print("Not connected to any port.")
             return False
         try:
-            print(f"Sending {len(data)} bytes of data in {np.ceil(len(data) / 512)} chunks.")
+            print(f"{len(data)} bytes | {int(np.ceil(len(data) / 512))} chunks.")
             for chunk in chunked(data, 512):
                 self.port.write(bytes(chunk))
             return True
