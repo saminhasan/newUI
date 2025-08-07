@@ -5,12 +5,10 @@
 #include <RingBuffer.h>
 #include <FastCRC.h>
 #include <MsgID.h>
-// Packet constants
-// Packet constants
+static constexpr size_t UB_SIZE              = 512;
 static constexpr size_t MB                   = 1024 * 1024;
 static constexpr size_t MIN_PACKET_SIZE      = 16;
 static constexpr size_t MAX_PACKET_SIZE      = size_t(7 * MB + MIN_PACKET_SIZE);               // 1 MB for the packet buffer
-static constexpr size_t UB_SIZE              = 512;
 static constexpr size_t PACKET_BUFFER_SIZE   = MAX_PACKET_SIZE;      // 1 MB
 static constexpr size_t maxArrayLength       = size_t((PACKET_BUFFER_SIZE - MIN_PACKET_SIZE)/ (6 * sizeof(float)));
 uint32_t arrayLength = 0;
@@ -22,14 +20,14 @@ typedef union {
 EXTMEM DataBuffer db;
 enum class ParseState
 {
-  WAITING_START,
-  WAITING_HEADER,
-  WAITING_PAYLOAD,
+  AWAIT_START,
+  AWAIT_HEADER,
+  AWAIT_PAYLOAD,
   PACKET_FOUND,
-  HANDLING_PACKET,
+  PACKET_HANDLING,
   PACKET_ERROR
 };
-ParseState parseState = ParseState::WAITING_START;
+ParseState parseState = ParseState::AWAIT_START;
 
 // Packet information structure
 struct PacketInfo {

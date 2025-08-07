@@ -243,8 +243,3 @@ class App(ctk.CTk):
         self.destroy()
         self.comProcess.join()
 
-
-if __name__ == "__main__":
-    app = App()
-    app.run()
-    print("Done.")
