@@ -1,5 +1,5 @@
 #include "imports.h"
-
+#include <messages.h>
 void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -26,39 +26,50 @@ void loop()
 }
 
 // Now define the callback function
-void handlePacket(Parser<PACKET_BUFFER_SIZE> &parser)
+void handlePacket(Parser<MAX_PACKET_SIZE> &parser)
 {
     const PacketInfo &pktInfo = parser.pktInfo;
     switch (pktInfo.msgID)
     {
         case msgID::HEARTBEAT:
-            // Debug.println("HEARTBEAT received");
+            // Debug.printf("%lu : HEARTBEAT received\n", pktInfo.sequenceNumber);
+            ack(Serial, pktInfo.sequenceNumber, msgID::HEARTBEAT, 255);
             break;
         case msgID::ENABLE:
-            // Debug.println("ENABLE received");
+            Debug.printf("%lu : ENABLE received\n", pktInfo.sequenceNumber);
+            enable(Serial, pktInfo.sequenceNumber, 255);
+            ack(Serial, pktInfo.sequenceNumber, msgID::ENABLE, 255);
+
             break;
         case msgID::PLAY:
-            // Debug.println("PLAY received");
+            play(Serial, pktInfo.sequenceNumber, 255);
+            ack(Serial, pktInfo.sequenceNumber, msgID::PLAY, 255);
+
             break;
         case msgID::PAUSE:
-            // Debug.println("PAUSE received");
+            pause(Serial, pktInfo.sequenceNumber, 255);
+            ack(Serial, pktInfo.sequenceNumber, msgID::PAUSE, 255);
             break;
         case msgID::STOP:
-            // Debug.println("STOP received");
+            stop(Serial, pktInfo.sequenceNumber, 255);
+            ack(Serial, pktInfo.sequenceNumber, msgID::STOP, 255);
             break;
         case msgID::DISABLE:
-            // Debug.println("DISABLE received");
+            disable(Serial, pktInfo.sequenceNumber, 255);
+            ack(Serial, pktInfo.sequenceNumber, msgID::DISABLE, 255);
             break;
         case msgID::DATA:
             arrayLength = pktInfo.payloadSize / (6 * sizeof(float));
             if (arrayLength > maxArrayLength)
             {
                 Debug.printf("Error: arrayLength %u > max %u\n", arrayLength, maxArrayLength);
+                nak(Serial, pktInfo.sequenceNumber, msgID::DATA, 255);
             }
             else
             {
                 parser.packetBuffer.readBytes(dataBuffer.bytes, pktInfo.payloadSize);
-                // Debug.printf("DATA: %u rows\n", arrayLength);
+                Debug.printf("%lu : DATA: %u rows\n", pktInfo.sequenceNumber, arrayLength);
+                ack(Serial, pktInfo.sequenceNumber, msgID::DATA, 255);
                 // printArray(dataBuffer.data, arrayLength);
             }
             break;

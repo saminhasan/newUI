@@ -1,13 +1,13 @@
 #ifndef IMPORTS_H
 #define IMPORTS_H
 #include <globals.h>
-#include <MsgID.h>
+#include <messages.h>
 #include <PacketParser.h>
 
 uint32_t arrayLength = 0;
 
-void handlePacket(Parser<PACKET_BUFFER_SIZE> &parser);
+void handlePacket(Parser<MAX_PACKET_SIZE> &parser);
 
-Parser<PACKET_BUFFER_SIZE> parser(ringBufferArray, handlePacket);
+Parser<MAX_PACKET_SIZE> parser(ringBufferArray, handlePacket);
 
 #endif // IMPORTS_H

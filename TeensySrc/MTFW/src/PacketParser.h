@@ -4,7 +4,7 @@
 #include <globals.h>
 #include <RingBuffer.h>
 #include <FastCRC.h>
-#include <MsgID.h>
+#include <messages.h>
 
 void printArray(float arr[][6], size_t length)
 {
@@ -34,8 +34,8 @@ struct PacketInfo
         {
             uint32_t packetLength;
             uint32_t sequenceNumber;
-            uint8_t systemId;
-            uint8_t axisId;
+            uint8_t fromID; // from
+            uint8_t toID; // to
             uint32_t crc;
         };
         uint8_t headerBytes[14];
@@ -95,8 +95,8 @@ public:
             {
                 packetBuffer.readBytes(pktInfo.headerBytes, 14);
                 crc = CRC32.crc32(pktInfo.headerBytes, 10);
-                pktInfo.payloadSize = pktInfo.packetLength - MIN_PACKET_SIZE;
-                if (pktInfo.payloadSize > bufferSize - MIN_PACKET_SIZE || pktInfo.payloadSize < 0)
+                pktInfo.payloadSize = pktInfo.packetLength - PACKET_OVERHEAD;
+                if (pktInfo.payloadSize > (MAX_PACKET_SIZE - PACKET_OVERHEAD) || pktInfo.payloadSize < 0)
                 {
                     Debug.printf("Invalid packet size: %lu\n", pktInfo.payloadSize);
                     parseState = ParseState::PACKET_ERROR;
@@ -116,7 +116,9 @@ public:
         case ParseState::PACKET_FOUND:
         {
             for (size_t i = 0; i < pktInfo.payloadSize; i++)
-                crc = CRC32.crc32_upd(&packetBuffer[i], 1);
+            {   uint8_t b = packetBuffer[i];
+                crc = CRC32.crc32_upd(&b, 1);
+            }
             pktInfo.isValid = (crc == pktInfo.crc) && (packetBuffer[pktInfo.payloadSize] == END_MARKER);
             if (pktInfo.isValid)
             {
@@ -131,8 +133,10 @@ public:
                     Debug.printf(" Invalid CRC  (expected: 0x%08X, computed: 0x%08X)\n", pktInfo.crc, crc);
                 else
                     Debug.printf("Unknown error\n");
-                Debug.printf("Packet Info: len=%u, size=%u, seq=%u, sysID=%u, axisID=%u, msgID=0x%02X\n", 
-                    pktInfo.packetLength, pktInfo.payloadSize, pktInfo.sequenceNumber, pktInfo.systemId, pktInfo.axisId, pktInfo.msgID);
+                Debug.printf("Packet Info: len=%u, size=%u, seq=%u, from=%u, to=%u, msgID=0x%02X\n",
+                    pktInfo.packetLength, pktInfo.payloadSize, pktInfo.sequenceNumber, pktInfo.fromID, pktInfo.toID, pktInfo.msgID);
+            
+                parseState = ParseState::PACKET_ERROR;
             }
             break;
         }
