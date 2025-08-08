@@ -37,25 +37,25 @@ void handlePacket(Parser<MAX_PACKET_SIZE> &parser)
             break;
         case msgID::ENABLE:
             Debug.printf("%lu : ENABLE received\n", pktInfo.sequenceNumber);
-            enable(Serial, pktInfo.sequenceNumber, 255);
+            // enable(Serial, pktInfo.sequenceNumber, 255);
             ack(Serial, pktInfo.sequenceNumber, msgID::ENABLE, 255);
 
             break;
         case msgID::PLAY:
-            play(Serial, pktInfo.sequenceNumber, 255);
+            // play(Serial, pktInfo.sequenceNumber, 255);
             ack(Serial, pktInfo.sequenceNumber, msgID::PLAY, 255);
 
             break;
         case msgID::PAUSE:
-            pause(Serial, pktInfo.sequenceNumber, 255);
+            // pause(Serial, pktInfo.sequenceNumber, 255);
             ack(Serial, pktInfo.sequenceNumber, msgID::PAUSE, 255);
             break;
         case msgID::STOP:
-            stop(Serial, pktInfo.sequenceNumber, 255);
+            // stop(Serial, pktInfo.sequenceNumber, 255);
             ack(Serial, pktInfo.sequenceNumber, msgID::STOP, 255);
             break;
         case msgID::DISABLE:
-            disable(Serial, pktInfo.sequenceNumber, 255);
+            // disable(Serial, pktInfo.sequenceNumber, 255);
             ack(Serial, pktInfo.sequenceNumber, msgID::DISABLE, 255);
             break;
         case msgID::DATA:
@@ -72,6 +72,10 @@ void handlePacket(Parser<MAX_PACKET_SIZE> &parser)
                 ack(Serial, pktInfo.sequenceNumber, msgID::DATA, 255);
                 // printArray(dataBuffer.data, arrayLength);
             }
+            break;
+        case msgID::RESET:
+            // reset(Serial, pktInfo.sequenceNumber, 255);
+            ack(Serial, pktInfo.sequenceNumber, msgID::RESET, 255);
             break;
         default:
             Debug.printf("Unknown msgID: 0x%02X\n", pktInfo.msgID);

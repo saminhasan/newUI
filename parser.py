@@ -59,9 +59,9 @@ class Parser:
 
                 case ParseState.AWAIT_HEADER:
                     # Need: LEN(4) + SEQ(4) + FROM(1) + TO(1) + CRC(4) = 14 bytes
-                    if len(buffer) < 14:
+                    if len(buffer) < header_size:
                         break
-                    hdr = bytes(buffer[:14])
+                    hdr = bytes(buffer[:header_size])
                     self._packet_length = struct.unpack_from("<I", hdr, 0)[0]  # bytes 0-3
                     self._sequence = struct.unpack_from("<I", hdr, 4)[0]  # bytes 4-7
                     self._from_id = hdr[8]  # byte 8

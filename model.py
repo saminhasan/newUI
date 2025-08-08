@@ -10,20 +10,20 @@ states: list[str] = [
 ]
 
 transitions: list[dict[str, str | list[str]]] = [
-    {"transition": "portSelect", "source": "IDLE", "dest": "DISCONNECTED"},
-    {"transition": "portSelect", "source": "DISCONNECTED", "dest": "DISCONNECTED"},
-    {"transition": "connect", "source": "DISCONNECTED", "dest": "CONNECTED"},
-    {"transition": "disconnect", "source": "CONNECTED", "dest": "DISCONNECTED"},
-    {"transition": "enable", "source": "CONNECTED", "dest": "STOPPED"},
-    {"transition": "upload", "source": "STOPPED", "dest": "READY"},
-    {"transition": "play", "source": "READY", "dest": "PLAYING"},
-    {"transition": "pause", "source": "PLAYING", "dest": "PAUSED"},
-    {"transition": "play", "source": "PAUSED", "dest": "PLAYING"},
-    {"transition": "stop", "source": "PLAYING", "dest": "STOPPED"},
-    {"transition": "stop", "source": "PAUSED", "dest": "STOPPED"},
-    {"transition": "reset", "source": states[1:], "dest": "DISCONNECTED"},
-    {"transition": "disable", "source": states[2:], "dest": "ERROR"},
-    {"transition": "quit", "source": states, "dest": "IDLE"},
+    {"transition": "PORTSELECT", "source": "IDLE", "dest": "DISCONNECTED"},
+    {"transition": "PORTSELECT", "source": "DISCONNECTED", "dest": "DISCONNECTED"},
+    {"transition": "CONNECT", "source": "DISCONNECTED", "dest": "CONNECTED"},
+    {"transition": "DISCONNECT", "source": "CONNECTED", "dest": "DISCONNECTED"},
+    {"transition": "ENABLE", "source": "CONNECTED", "dest": "STOPPED"},
+    {"transition": "UPLOAD", "source": "STOPPED", "dest": "READY"},
+    {"transition": "PLAY", "source": "READY", "dest": "PLAYING"},
+    {"transition": "PAUSE", "source": "PLAYING", "dest": "PAUSED"},
+    {"transition": "PLAY", "source": "PAUSED", "dest": "PLAYING"},
+    {"transition": "STOP", "source": "PLAYING", "dest": "STOPPED"},
+    {"transition": "STOP", "source": "PAUSED", "dest": "STOPPED"},
+    {"transition": "RESET", "source": states[1:], "dest": "DISCONNECTED"},
+    {"transition": "DISABLE", "source": states[2:], "dest": "ERROR"},
+    {"transition": "QUIT", "source": states, "dest": "IDLE"},
 ]
 # ─────────────────────────────────────────────────────────────────────────
 import networkx as nx

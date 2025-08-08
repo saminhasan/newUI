@@ -27,6 +27,7 @@ def portList() -> list[list_ports_common.ListPortInfo]:
 class App(ctk.CTk):
     def __init__(self) -> None:
         super().__init__()
+        self.sequence: int = 0
         self.running: bool = True
         self.response: dict = {}
         self.parentConnection: Connection
@@ -59,10 +60,10 @@ class App(ctk.CTk):
             dropdown_pressed_callback=self.dropdown_callback,
             width=280,
             state="readonly",
-            command=lambda event: self.requestHandler("portSelect", port=event),
+            command=lambda event: self.requestHandler("PORTSELECT", port=event),
         )
         self.portSelect.grid(row=0, column=0, columnspan=3, sticky="we", padx=(10, 5), pady=(10, 10))
-        self.controlPanelWidgets["portSelect"] = self.portSelect
+        self.controlPanelWidgets["PORTSELECT"] = self.portSelect
 
         self.connectionFrame = ctk.CTkFrame(self.controlPanel)
         self.connectionFrame.grid(row=0, column=4, columnspan=2, sticky="we", padx=(5, 10), pady=(10, 10))
@@ -72,7 +73,7 @@ class App(ctk.CTk):
         self.connectBtn = ctk.CTkButton(
             self.connectionFrame,
             text="",
-            command=lambda: self.requestHandler("connect"),
+            command=lambda: self.requestHandler("CONNECT"),
             image=ctk.CTkImage(light_image=usb_icon, dark_image=usb_icon),
             hover_color="green4",
             fg_color="transparent",
@@ -81,27 +82,27 @@ class App(ctk.CTk):
         self.disconnectBtn = ctk.CTkButton(
             self.connectionFrame,
             text="",
-            command=lambda: self.requestHandler("disconnect"),
+            command=lambda: self.requestHandler("DISCONNECT"),
             image=ctk.CTkImage(light_image=usb_off_icon, dark_image=usb_off_icon),
             hover_color="red",
             fg_color="transparent",
         )
         self.disconnectBtn.grid(row=0, column=1, sticky="nsew", padx=(2.5, 5), pady=5)
 
-        self.controlPanelWidgets["connect"] = self.connectBtn
-        self.controlPanelWidgets["disconnect"] = self.disconnectBtn
+        self.controlPanelWidgets["CONNECT"] = self.connectBtn
+        self.controlPanelWidgets["DISCONNECT"] = self.disconnectBtn
         self.enableBtn = ctk.CTkButton(
             self.controlPanel,
             text="ENABLE",
-            command=lambda: self.requestHandler("enable"),
+            command=lambda: self.requestHandler("ENABLE"),
         )
         self.enableBtn.grid(row=1, column=0, rowspan=2, columnspan=6, sticky="nsew", padx=(10, 10), pady=(10, 10))
-        self.controlPanelWidgets["enable"] = self.enableBtn
+        self.controlPanelWidgets["ENABLE"] = self.enableBtn
         self.uploadBtn: ctk.CTkButton = ctk.CTkButton(
-            self.controlPanel, text="UPLOAD", command=lambda: self.fileHandler("upload")
+            self.controlPanel, text="UPLOAD", command=lambda: self.fileHandler("UPLOAD")
         )
         self.uploadBtn.grid(row=3, column=0, columnspan=6, rowspan=2, sticky="nsew", padx=(10, 10), pady=(10, 10))
-        self.controlPanelWidgets["upload"] = self.uploadBtn
+        self.controlPanelWidgets["UPLOAD"] = self.uploadBtn
 
         self.playbackFrame = ctk.CTkFrame(self.controlPanel)
         self.playbackFrame.grid(row=5, column=0, columnspan=6, rowspan=2, sticky="nsew", padx=(10, 10), pady=(10, 10))
@@ -113,7 +114,7 @@ class App(ctk.CTk):
         self.playBtn = ctk.CTkButton(
             self.playbackFrame,
             text="",
-            command=lambda: self.requestHandler("play"),
+            command=lambda: self.requestHandler("PLAY"),
             image=ctk.CTkImage(light_image=play_icon, dark_image=play_icon),
             hover_color="dark green",
             fg_color="transparent",
@@ -122,7 +123,7 @@ class App(ctk.CTk):
         self.pauseBtn = ctk.CTkButton(
             self.playbackFrame,
             text="",
-            command=lambda: self.requestHandler("pause"),
+            command=lambda: self.requestHandler("PAUSE"),
             image=ctk.CTkImage(light_image=pause_icon, dark_image=pause_icon),
             hover_color="yellow4",
             fg_color="transparent",
@@ -131,35 +132,40 @@ class App(ctk.CTk):
         self.stopBtn = ctk.CTkButton(
             self.playbackFrame,
             text="",
-            command=lambda: self.requestHandler("stop"),
+            command=lambda: self.requestHandler("STOP"),
             image=ctk.CTkImage(light_image=stop_icon, dark_image=stop_icon),
             hover_color="red4",
             fg_color="transparent",
         )
         self.stopBtn.grid(row=0, column=2, sticky="nsew", padx=(5, 10), pady=10)
 
-        self.controlPanelWidgets["play"] = self.playBtn
-        self.controlPanelWidgets["pause"] = self.pauseBtn
-        self.controlPanelWidgets["stop"] = self.stopBtn
+        self.controlPanelWidgets["PLAY"] = self.playBtn
+        self.controlPanelWidgets["PAUSE"] = self.pauseBtn
+        self.controlPanelWidgets["STOP"] = self.stopBtn
         self.disableBtn: ctk.CTkButton = ctk.CTkButton(
-            self.controlPanel, text="EStop", command=lambda: self.requestHandler("disable"), fg_color="red4", hover_color="red2"
+            self.controlPanel,
+            text="DISABLE",
+            command=lambda: self.requestHandler("DISABLE"),
+            fg_color="red4",
+            hover_color="red2",
         )
         self.disableBtn.grid(row=7, column=0, rowspan=2, columnspan=6, sticky="nsew", padx=(10, 10), pady=(10, 10))
-        self.controlPanelWidgets["disable"] = self.disableBtn
+        self.controlPanelWidgets["DISABLE"] = self.disableBtn
         self.resetBtn: ctk.CTkButton = ctk.CTkButton(
-            self.controlPanel, text="RESET", command=lambda: self.requestHandler("reset")
+            self.controlPanel, text="RESET", command=lambda: self.requestHandler("RESET")
         )
         self.resetBtn.grid(row=9, column=0, columnspan=6, sticky="nsew", padx=(10, 10), pady=(10, 10))
-        self.controlPanelWidgets["reset"] = self.resetBtn
+        self.controlPanelWidgets["RESET"] = self.resetBtn
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def configure_widgets(self, to_enable=None, current_state=None) -> None:
-        return
-        enabled_widgets = set(to_enable or ())
+        # return
+        # enabled_widgets = set(to_enable or ())
+        enabled_widgets = to_enable
         for key, w in self.controlPanelWidgets.items():
             target_state = "normal" if key in enabled_widgets else "disabled"
-            if w.cget("state") != target_state:
-                w.configure(state=target_state)
+            # if w.cget("state") != target_state:
+            w.configure(state=target_state)
         if current_state not in ["DISCONNECTED", "IDLE", "ERROR"]:
             self.connectBtn.configure(fg_color="lime green")
         else:
@@ -192,7 +198,7 @@ class App(ctk.CTk):
         else:
             self.portSelect.configure(values=[])
 
-    def fileHandler(self, event_name="upload") -> None:
+    def fileHandler(self, event_name="UPLOAD") -> None:
         # file_path = filedialog.askopenfilename(title="Select File", filetypes=[("All Files", "*.*")])
         # if file_path:  # call checking function here or maybe even plot the file
         #     self.requestHandler(event_name, filePath=file_path)
@@ -202,31 +208,44 @@ class App(ctk.CTk):
         self.requestHandler(event_name, filePath="file_path_placeholder")
 
     def requestHandler(self, event_name: str, **kwargs: dict) -> None:
-        # if event_name == "portSelect":
-        #     self.portSelect._entry.configure(state="readonly")
-        eventDict = {"event": event_name}
+        eventDict = {"event": event_name, "sequence": self.sequence}
         if kwargs:
             eventDict.update(kwargs)
-        self.parentConnection.send(eventDict)
+        try:
+            self.parentConnection.send(eventDict)
+            self.sequence += 1
+        except Exception as e:
+            print(f"parentConnection error  : {e}")
 
     def responseListener(self) -> None:
         while self.running:
-            self.response = self.parentConnection.recv()
-            if self.response.get("event", None) == "quit":
+            try:
+                self.response = self.parentConnection.recv()
+            except Exception as e:
+                print(f"parentConnection error  : {e} | Stopping responseListener")
+                self.running = False
+                return
+            if self.response.get("event", None) == "QUIT":
                 break
             else:
                 self.after(0, lambda: self.event_generate("<<ReceivedResponse>>", when="tail"))
 
     def responseHandler(self, VirtualEvent=None) -> None:
-        return
+        # return
+        print(self.response)
         event = self.response.get("event", None)
-        if event is not None:
+        status = self.response.get("status", None)
+        if status == "ACK":
             if event in self.fsm.available_transitions():
                 self.fsm.trigger(event)
-                if event != "quit":
+                print(self.fsm.available_transitions(), self.fsm.state)
+                if event != "QUIT":
                     self.configure_widgets(self.fsm.available_transitions(), self.fsm.state)
             else:
                 raise ValueError(f"Event {event} not in: {self.fsm.available_transitions()}")
+        elif status == "NAK":
+            print(f"NAK : {self.response}")
+
         self.response = {}
 
     def run(self) -> None:
@@ -236,10 +255,15 @@ class App(ctk.CTk):
 
     def on_closing(self) -> None:
         self.running = False
-        self.requestHandler("quit")
+        self.requestHandler("QUIT")
         if self.resLT.is_alive():
             self.resLT.join()
         self.parentConnection.close()
-        self.destroy()
         self.comProcess.join()
+        self.destroy()
 
+
+if __name__ == "__main__":
+    app = App()
+    app.run()
+    print("Done.")
