@@ -61,6 +61,9 @@ void handlePacket(Parser<MAX_PACKET_SIZE> &parser)
                 parser.packetBuffer.readBytes(dataBuffer.bytes, pktInfo.payloadSize);
                 Debug.printf("%lu : DATA: %u rows\n", pktInfo.sequenceNumber, arrayLength);
                 ack(Serial, pktInfo.sequenceNumber, msgID::UPLOAD, NODE_ID_PC);
+                Pose pose;
+                memcpy(pose.angle, dataBuffer.data[0], sizeof(pose.angle));
+                move(Serial, 1000, NODE_ID_PC, pose);
                 // printArray(dataBuffer.data, arrayLength);
             }
             break;

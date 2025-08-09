@@ -1,9 +1,11 @@
+import os
+import time
 import serial
-from threading import Thread, Event
-from multiprocessing import Queue
-from Hexlink.commands import *
-from more_itertools import chunked
 from parser import Parser
+from Hexlink.commands import *
+from multiprocessing import Process, Queue
+from more_itertools import chunked
+from threading import Thread, Event
 
 np.set_printoptions(precision=6, suppress=True)
 
@@ -17,6 +19,8 @@ class serialServer:
         self.filePath: str = ""
         self.byteBuffer = Queue()
         self.sequenceList = []
+        self.startTimeStr = time.strftime("%Y-%m-%d-%H-%M-%S")
+        self.path = f"logs/{self.startTimeStr}.bin"
 
     @property
     def connected(self) -> bool:
@@ -81,8 +85,10 @@ class serialServer:
 
                 case "CONNECT":
                     self.sendResponse(request, self.connect())
+                    self.sendData(connect(request["sequence"]), sequence=request["sequence"])
 
                 case "DISCONNECT":
+                    self.sendData(disconnect(request["sequence"]), sequence=request["sequence"])
                     self.sendResponse(request, self.disconnect())
 
                 case "ENABLE":
@@ -112,8 +118,9 @@ class serialServer:
                 case "QUIT":
                     if self.connected:
                         self.sendData(quit(request["sequence"]), sequence=request["sequence"])
-                    self.sendResponse(request, True)
-                    self.foo()
+                    else:
+                        self.sendResponse(request, True)
+                        self.foo()
                     return
 
     def sendResponse(self, response, success):
@@ -126,14 +133,13 @@ class serialServer:
     def SerialListener(self):
         while self.running:
             self.listen.wait()
-            byteBuffer = bytearray()  # bytes returned from serial read is immutable, so we use bytearray for mutability
+            byteBuffer = bytearray()
             while self.running and self.listen.is_set():
                 try:
-                    if rawBytes := self.port.read(max(self.port.in_waiting, 1)):
+                    if rawBytes := self.port.read(min(self.port.in_waiting, 18)):
                         byteBuffer.extend(rawBytes)
-                        for b in rawBytes:
-                            self.byteBuffer.put(b)
-                    # print("In Buffer:", " ".join(f"0x{b:02x}" for b in byteBuffer))
+                        self.byteBuffer.put(rawBytes)
+                        # print("In Buffer:", " ".join(f"0x{b:02x}" for b in byteBuffer))
                 except Exception as e:
                     self.disconnect()
                     self.listen.clear()
@@ -142,31 +148,45 @@ class serialServer:
                 if len(byteBuffer) >= MIN_PACKET_SIZE:
                     self.parser.parse(byteBuffer)
 
-    def handle_frame(self, frame):
-        # print(f"handle_frame:={frame}")
-        if frame.get("msg_id") == "ACK" or frame.get("msg_id") == "NAK":
-            event = {
-                "event": msgIDs[frame["payload"]],
-                "sequence": frame["sequence"],
-                "status": True if frame["msg_id"] == "ACK" else False,
-            }
-            if event["sequence"] in self.sequenceList:
-                self.sendResponse(event, True)
-                self.sequenceList.remove(event["sequence"])
+    def handle_frame(self, frames):
+        for frame in frames:
+            # print(f"handle_frame={frame}")
+            if frame.get("msg_id") == "ACK" or frame.get("msg_id") == "NAK":
+                event = {
+                    "event": frame.get("payload"),
+                    "sequence": frame["sequence"],
+                    "status": True if frame["msg_id"] == "ACK" else False,
+                }
+                if frame.get("msg_id") == "NAK":
+                    print(f"Error in response: {event}")
+                if event["sequence"] in self.sequenceList:
+                    self.sendResponse(event, True)
+                    self.sequenceList.remove(event["sequence"])
+                if event["event"] == "QUIT":
+                    self.foo()
+            else:
+                print(f"Unhandled frame: {frame}")
 
     def run(self):
-        print("Serial server started.")
-        self.parser = Parser(callback=lambda frame: self.handle_frame(frame))
-        self.listen = Event()
-        self.rsT = Thread(target=self.SerialRequestSender, name="SerialRequestSender", daemon=True)
-        self.slT = Thread(target=self.SerialListener, name="SerialListener", daemon=True)
-        self.rsT.start()
-        self.slT.start()
-        self.rsT.join()
-        self.slT.join()
-        self.stop()
-        print("Serial server stopped.")
-        # exit(0)
+        try:
+            print("Serial server started.")
+            self.parser = Parser(callback=lambda frame: self.handle_frame(frame))
+            self.listen = Event()
+            self.rsT = Thread(target=self.SerialRequestSender, name="SerialRequestSender", daemon=True)
+            self.slT = Thread(target=self.SerialListener, name="SerialListener", daemon=True)
+            self._writer = Process(target=file_writer, args=(self.byteBuffer, self.path))
+            self._writer.start()
+            self.rsT.start()
+            self.slT.start()
+            self.rsT.join()
+            self.slT.join()
+            self.stop()
+            print("Serial server stopped.")
+        except Exception as e:
+            print(f"[run] : Exception in serial server run: {e}")
+            self.stop()
+        finally:
+            pass
 
     def foo(self):
         self.running = False
@@ -181,6 +201,15 @@ class serialServer:
         if self.slT.is_alive():
             self.slT.join()
         self.pipe.close()
+        self.byteBuffer.put(None)  # to stop writer
+        self._writer.join()
+
+
+def file_writer(q: Queue, path: str):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as file:
+        for chunk in iter(q.get, None):  # sentinel-driven loop
+            file.write(chunk)
 
 
 if __name__ == "__main__":

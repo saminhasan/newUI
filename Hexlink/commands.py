@@ -24,6 +24,7 @@ class MsgID(IntEnum):
     QUIT = 0x0B
     CONNECT = 0x0C
     DISCONNECT = 0x0D
+    MOVE = 0x0E
 
 
 # Access as bytes
@@ -97,6 +98,17 @@ def upload(seq: int, array: np.ndarray) -> bytearray:
     float_array = array.astype(np.float32)
     payload_data = float_array.tobytes()
     payload = msg_bytes[MsgID.UPLOAD] + payload_data
+    return encode_packet(seq, payload)
+
+
+def move(seq: int, pose: np.ndarray) -> bytearray:
+    if not isinstance(pose, np.ndarray):
+        raise TypeError("Pose must be a NumPy ndarray")
+    if pose.ndim != 1 or pose.shape[0] != 6:
+        raise ValueError("Pose must have shape (6,)")
+    float_array = pose.astype(np.float32)
+    payload_data = float_array.tobytes()
+    payload = msg_bytes[MsgID.MOVE] + payload_data
     return encode_packet(seq, payload)
 
 

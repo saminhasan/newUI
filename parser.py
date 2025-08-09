@@ -1,7 +1,7 @@
 import zlib
 import struct
+import numpy as np
 from enum import Enum, auto
-from multiprocessing import Queue
 from typing import Callable, Optional
 from Hexlink.commands import START_MARKER, END_MARKER, PACKET_OVERHEAD, MAX_PACKET_SIZE, msgIDs
 
@@ -85,12 +85,13 @@ class Parser:
                     end_marker = buffer[self._payload_size]
                     valid = self._crc_computed == self._crc_expected and end_marker == END_MARKER[0]  # Compare with single byte
                     if valid:
+                        _id, payloadDecoded = decodePayload(payload)
                         frame = {
                             "sequence": self._sequence,
                             "from": self._from_id,
                             "to": self._to_id,
-                            "msg_id": msgIDs.get(bytes([payload[0]]), "UNKNOWN"),
-                            "payload": payload[1:],
+                            "msg_id": _id,
+                            "payload": payloadDecoded,
                         }
                         frames.append(frame)
                         del buffer[: self._payload_size + 1]  # Remove payload + end marker
@@ -105,7 +106,7 @@ class Parser:
 
                 case ParseState.PACKET_HANDLING:
                     if self.callback:
-                        self.callback(frame)
+                        self.callback([frame])
                     self.state = ParseState.AWAIT_START
 
                 case ParseState.PACKET_ERROR:
@@ -114,3 +115,42 @@ class Parser:
 
                 case _:  # default case
                     self.state = ParseState.AWAIT_START
+
+
+def decodePayload(payload):
+    if not isinstance(payload, bytes):
+        raise TypeError("Payload must be of type bytes")
+    _id = msgIDs.get(bytes([payload[0]]), "UNKNOWN")
+    match _id:
+        case "UNKNOWN":
+            decodePayload = None
+        case "HEARTBEAT":
+            decodePayload = "HEARTBEAT"
+        case "ENABLE":
+            decodePayload = "ENABLE"
+        case "PLAY":
+            decodePayload = "PLAY"
+        case "PAUSE":
+            decodePayload = "PAUSE"
+        case "STOP":
+            decodePayload = "STOP"
+        case "DISABLE":
+            decodePayload = "DISABLE"
+        case "ACK":
+            decodePayload = msgIDs.get(bytes([payload[1]]), "UNKNOWN")
+        case "NAK":
+            decodePayload = msgIDs.get(bytes([payload[1]]), "UNKNOWN")
+        case "RESET":
+            decodePayload = "RESET"
+        case "QUIT":
+            decodePayload = "QUIT"
+        case "CONNECT":
+            decodePayload = "CONNECT"
+        case "DISCONNECT":
+            decodePayload = "DISCONNECT"
+        case "UPLOAD" | "MOVE":
+            decodePayload = np.frombuffer(payload[1:], dtype=np.float32).reshape(-1, 6)
+        case _:
+            decodePayload = payload[1:]  # Default case, return raw payload
+    # print(f"Decoded payload: {_id}, Data: {decodePayload}")
+    return _id, decodePayload

@@ -253,9 +253,9 @@ class App(ctk.CTk):
 
     def on_closing(self) -> None:
         self.requestHandler("QUIT")
+        self.comProcess.join()
         if self.resLT.is_alive():
             self.resLT.join()
-        self.comProcess.join()
         self.parentConnection.close()
         self.destroy()
 

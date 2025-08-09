@@ -23,9 +23,15 @@ namespace msgID
     const uint8_t QUIT = 0x0B;
     const uint8_t CONNECT = 0x0C;
     const uint8_t DISCONNECT = 0x0D;
+    const uint8_t MOVE = 0x0E;
 }
 
 FastCRC32 mcrc32;
+
+struct __attribute__((packed)) Pose
+{   uint8_t msg_id = msgID::MOVE;
+    float angle[6];
+};
 
 uint32_t createPacket(uint32_t seq, const uint8_t *payload, uint32_t payloadLen, uint8_t toID)
 {
@@ -138,6 +144,16 @@ void reset(StreamType &serial, uint32_t seq, uint8_t toID)
     uint32_t packetSize = createPacket(seq, &payload, 1, toID);
     serial.write(sendBuffer, packetSize);
 }
+
+template <typename StreamType>
+void move(StreamType &serial, uint32_t seq, uint8_t toID, const Pose &pose)
+{
+    uint8_t payload[sizeof(Pose)];
+    memcpy(payload, &pose, sizeof(Pose));
+    uint32_t packetSize = createPacket(seq, payload, sizeof(payload), toID);
+    serial.write(sendBuffer, packetSize);
+}
+
 
 template <typename StreamType>
 void ack(StreamType &serial, uint32_t seq, uint8_t msgID, uint8_t toID)
