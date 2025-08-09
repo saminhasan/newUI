@@ -27,6 +27,7 @@ class serialServer:
             return False
 
     def connect(self):
+        self.disconnect()
         if not self.portStr:
             print("[connect] : No Port Selected")
             return False
@@ -37,19 +38,6 @@ class serialServer:
             return True
         except Exception as e:
             print(f"[connect] : Error opening port: {e}")
-            return False
-
-    def sendData(self, data: bytes):
-        if not self.connected or not data:
-            print(f"[sendData] Aborted: connected={self.connected}, data_length={len(data) if data else 0}")
-            return False
-        try:
-            byteSent = 0
-            for chunk in chunked(data, 512):
-                byteSent += self.port.write(bytes(chunk))
-            return byteSent == len(data)
-        except Exception as e:
-            print(f"[sendData] : Error in sendData: {e}")
             return False
 
     def disconnect(self):
@@ -63,6 +51,21 @@ class serialServer:
             print(f"[disconnect] : Error closing port: {e}")
             return False
         return True
+
+    def sendData(self, data: bytes, sequence: int):
+        if not self.connected or not data:
+            print(f"[sendData] Aborted: connected={self.connected}, data_length={len(data) if data else 0}")
+            return False
+        try:
+            byteSent = 0
+            for chunk in chunked(data, 512):
+                byteSent += self.port.write(bytes(chunk))
+            if byteSent == len(data):
+                self.sequenceList.append(sequence)
+                return True
+        except Exception as e:
+            print(f"[sendData] : Error in sendData: {e}")
+            return False
 
     def SerialRequestSender(self):
         while self.running:
@@ -91,30 +94,30 @@ class serialServer:
                     self.sendData(upload(request["sequence"], data_array), sequence=request["sequence"])
 
                 case "PLAY":
-                    self.sendData(play(request["sequence"], sequence=request["sequence"]))
+                    self.sendData(play(request["sequence"]), sequence=request["sequence"])
 
                 case "PAUSE":
-                    self.sendData(pause(request["sequence"], sequence=request["sequence"]))
+                    self.sendData(pause(request["sequence"]), sequence=request["sequence"])
 
                 case "STOP":
-                    self.sendData(stop(request["sequence"], sequence=request["sequence"]))
+                    self.sendData(stop(request["sequence"]), sequence=request["sequence"])
 
                 case "DISABLE":
-                    self.sendData(disable(request["sequence"], sequence=request["sequence"]))
+                    self.sendData(disable(request["sequence"]), sequence=request["sequence"])
 
                 case "RESET":
-                    self.sendData(reset(request["sequence"], sequence=request["sequence"]))
+                    self.sendData(reset(request["sequence"]), sequence=request["sequence"])
                     self.sendResponse(request, self.disconnect())
+
                 case "QUIT":
-                    # self.sendData(quit(request["sequence"]))
-                    self.running = False
-                    self.listen.set()
-                    self.listen.clear()
+                    if self.connected:
+                        self.sendData(quit(request["sequence"]), sequence=request["sequence"])
                     self.sendResponse(request, True)
+                    self.foo()
                     return
 
     def sendResponse(self, response, success):
-        response["status"] = "ACK" if success else "NAK"
+        response["status"] = success
         try:
             self.pipe.send(response)
         except Exception as e:
@@ -128,6 +131,8 @@ class serialServer:
                 try:
                     if rawBytes := self.port.read(max(self.port.in_waiting, 1)):
                         byteBuffer.extend(rawBytes)
+                        for b in rawBytes:
+                            self.byteBuffer.put(b)
                     # print("In Buffer:", " ".join(f"0x{b:02x}" for b in byteBuffer))
                 except Exception as e:
                     self.disconnect()
@@ -162,6 +167,11 @@ class serialServer:
         self.stop()
         print("Serial server stopped.")
         # exit(0)
+
+    def foo(self):
+        self.running = False
+        self.listen.set()
+        self.listen.clear()
 
     def stop(self):
         if self.connected:

@@ -215,18 +215,16 @@ class App(ctk.CTk):
             self.parentConnection.send(eventDict)
             self.sequence += 1
         except Exception as e:
-            print(f"parentConnection error  : {e}")
+            print(f"[responseListener]  : {e}")
 
     def responseListener(self) -> None:
         while self.running:
             try:
                 self.response = self.parentConnection.recv()
             except Exception as e:
-                print(f"parentConnection error  : {e} | Stopping responseListener")
-                self.running = False
-                return
+                print(f"[responseListener]  : {e}")
             if self.response.get("event", None) == "QUIT":
-                break
+                self.running = False
             else:
                 self.after(0, lambda: self.event_generate("<<ReceivedResponse>>", when="tail"))
 
@@ -235,7 +233,7 @@ class App(ctk.CTk):
         # print(self.response)
         event = self.response.get("event", None)
         status = self.response.get("status", None)
-        if status == "ACK":
+        if status:
             if event in self.fsm.available_transitions():
                 self.fsm.trigger(event)
                 # print(self.fsm.available_transitions(), self.fsm.state)
@@ -243,7 +241,7 @@ class App(ctk.CTk):
                     self.configure_widgets(self.fsm.available_transitions(), self.fsm.state)
             else:
                 raise ValueError(f"Event {event} not in: {self.fsm.available_transitions()}")
-        elif status == "NAK":
+        else:
             print(f"NAK : {self.response}")
 
         self.response = {}
@@ -254,12 +252,11 @@ class App(ctk.CTk):
         self.mainloop()
 
     def on_closing(self) -> None:
-        self.running = False
         self.requestHandler("QUIT")
         if self.resLT.is_alive():
             self.resLT.join()
-        self.parentConnection.close()
         self.comProcess.join()
+        self.parentConnection.close()
         self.destroy()
 
 

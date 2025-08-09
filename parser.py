@@ -1,6 +1,7 @@
 import zlib
 import struct
 from enum import Enum, auto
+from multiprocessing import Queue
 from typing import Callable, Optional
 from Hexlink.commands import START_MARKER, END_MARKER, PACKET_OVERHEAD, MAX_PACKET_SIZE, msgIDs
 
@@ -23,21 +24,21 @@ class Parser:
         self.callback = callback
 
         # working vars
-        self._packet_length = 0
-        self._sequence = 0
-        self._from_id = 0
-        self._to_id = 0
-        self._crc_expected = 0
-        self._crc_computed = 0
-        self._payload_size = 0
+        self._packet_length: int = 0
+        self._sequence: int = 0
+        self._from_id: int = 0
+        self._to_id: int = 0
+        self._crc_expected: int = 0
+        self._crc_computed: int = 0
+        self._payload_size: int = 0
 
-    def parse(self, buffer: bytearray) -> list[dict]:
+    def parse(self, buffer: bytearray) -> None:
         """
         Consume as many packets from buffer as possible.
         Returns a list of frame dicts. Leaves any partial packet in buffer.
         """
-        frames = []
-        header_size = PACKET_OVERHEAD - 2  # subtract start+end markers
+        frames: list[dict] = []
+        header_size: int = PACKET_OVERHEAD - 2  # subtract start+end markers
 
         while True:
             match self.state:
@@ -61,10 +62,8 @@ class Parser:
                     self._from_id = hdr[8]  # byte 8
                     self._to_id = hdr[9]  # byte 9
                     self._crc_expected = struct.unpack_from("<I", hdr, 10)[0]  # bytes 10-13
-
-                    # CRC is computed on: LEN + SEQ + FROM + TO + PAYLOAD (as per your encoding)
+                    # CRC is computed on: LEN + SEQ + FROM + TO + PAYLOAD (as per  encoding)
                     self._crc_computed = zlib.crc32(hdr[:10]) & 0xFFFFFFFF  # LEN + SEQ + FROM + TO
-
                     # Payload size = total_packet_size - START(1) - LEN(4) - SEQ(4) - FROM(1) - TO(1) - CRC(4) - END(1)
                     # = packet_length - 16 (since packet_length is total size as per Teensy debug)
                     self._payload_size = self._packet_length - PACKET_OVERHEAD
@@ -106,10 +105,7 @@ class Parser:
 
                 case ParseState.PACKET_HANDLING:
                     if self.callback:
-                        for f in frames:
-                            self.callback(f)
-                    # for f in frames:
-                    #     print(f)
+                        self.callback(frame)
                     self.state = ParseState.AWAIT_START
 
                 case ParseState.PACKET_ERROR:
@@ -118,5 +114,3 @@ class Parser:
 
                 case _:  # default case
                     self.state = ParseState.AWAIT_START
-
-        # return frames
