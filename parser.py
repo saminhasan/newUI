@@ -150,6 +150,8 @@ def decodePayload(payload):
             decodePayload = "DISCONNECT"
         case "UPLOAD" | "MOVE":
             decodePayload = np.frombuffer(payload[1:], dtype=np.float32).reshape(-1, 6)
+        case "INFO":
+            decodePayload = payload[1:].decode("utf-8")
         case _:
             decodePayload = payload[1:]  # Default case, return raw payload
     # print(f"Decoded payload: {_id}, Data: {decodePayload}")

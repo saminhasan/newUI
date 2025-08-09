@@ -24,18 +24,15 @@ namespace msgID
     const uint8_t CONNECT = 0x0C;
     const uint8_t DISCONNECT = 0x0D;
     const uint8_t MOVE = 0x0E;
+    const uint8_t INFO = 0xFE;
+    const uint8_t UNKNOWN = 0xFF; // For unknown message IDs
 }
 FastCRC32 mcrc32;
 
-union Pose {
-    float    angles[6];
-    uint8_t  bytes[sizeof(angles)];
-};
 template <typename StreamType>
 void sendPacket(StreamType& serial, uint32_t payloadLen, uint32_t seq, uint8_t toID, uint8_t msgID, const uint8_t* payload)
 {
     static uint32_t index, crc, packetLen;
-    static DMAMEM uint8_t sendBuffer[SEND_BUFFER_SIZE];
     index = 0;
     crc = 0;
     packetLen = payloadLen + PACKET_OVERHEAD + 1;
@@ -146,4 +143,23 @@ void nak(StreamType &serial, uint32_t seq, uint8_t toID, uint8_t msgID)
 {
     sendPacket(serial, uint32_t(1), seq, toID, msgID::NAK, &msgID);
 }
+
+template <typename StreamType>
+void logInfo(StreamType &serial, const char *fmt, ...)
+{
+    uint32_t seq = millis(); // Use current time as sequence number
+    uint8_t toID = NODE_ID_PC;
+
+    va_list args;
+    va_start(args, fmt);
+    int len = vsnprintf(nullptr, 0, fmt, args) + 1;
+    va_end(args);
+
+    char msg[len];
+    va_start(args, fmt);
+    vsnprintf(msg, len, fmt, args);
+    va_end(args);
+    sendPacket(serial, len, seq, toID, msgID::INFO, reinterpret_cast<const uint8_t*>(msg));
+}
+
 #endif // MESSAGES_H

@@ -159,6 +159,7 @@ class serialServer:
                     self.sendResponse(response, True)
                     self.sequenceList.remove(response["sequence"])
                 if response["event"] == "RESET" or response["event"] == "DISCONNECT":
+                    print(response["event"])
                     self.disconnect()
                 if response["event"] == "QUIT":
                     self.foo()

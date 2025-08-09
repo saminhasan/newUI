@@ -18,6 +18,6 @@ typedef union {
     uint8_t bytes[maxArrayLength * 6 * sizeof(float)]; // Access raw bytes
 } DataBuffer;
 EXTMEM DataBuffer dataBuffer;
-
+DMAMEM uint8_t sendBuffer[SEND_BUFFER_SIZE];
 
 #endif // GLOBALS_H

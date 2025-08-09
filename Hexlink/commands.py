@@ -25,6 +25,8 @@ class MsgID(IntEnum):
     CONNECT = 0x0C
     DISCONNECT = 0x0D
     MOVE = 0x0E
+    INFO = 0xFE
+    UNKNOWN = 0xFF
 
 
 # Access as bytes
