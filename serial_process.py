@@ -84,12 +84,12 @@ class serialServer:
                     self.sendResponse(request, True)
 
                 case "CONNECT":
-                    self.sendResponse(request, self.connect())
-                    self.sendData(connect(request["sequence"]), sequence=request["sequence"])
+                    self.connect()
+                    if self.connected:
+                        self.sendData(connect(request["sequence"]), sequence=request["sequence"])
 
                 case "DISCONNECT":
                     self.sendData(disconnect(request["sequence"]), sequence=request["sequence"])
-                    self.sendResponse(request, self.disconnect())
 
                 case "ENABLE":
                     self.sendData(enable(request["sequence"]), sequence=request["sequence"])
@@ -113,7 +113,6 @@ class serialServer:
 
                 case "RESET":
                     self.sendData(reset(request["sequence"]), sequence=request["sequence"])
-                    self.sendResponse(request, self.disconnect())
 
                 case "QUIT":
                     if self.connected:
@@ -123,7 +122,7 @@ class serialServer:
                         self.foo()
                     return
 
-    def sendResponse(self, response, success):
+    def sendResponse(self, response, success=False):
         response["status"] = success
         try:
             self.pipe.send(response)
@@ -150,20 +149,21 @@ class serialServer:
 
     def handle_frame(self, frames):
         for frame in frames:
-            # print(f"handle_frame={frame}")
-            if frame.get("msg_id") == "ACK" or frame.get("msg_id") == "NAK":
-                event = {
-                    "event": frame.get("payload"),
+            if frame["msg_id"] == "ACK" or frame["msg_id"] == "NAK":
+                response = {
+                    "event": frame["payload"],
                     "sequence": frame["sequence"],
                     "status": True if frame["msg_id"] == "ACK" else False,
                 }
-                if frame.get("msg_id") == "NAK":
-                    print(f"Error in response: {event}")
-                if event["sequence"] in self.sequenceList:
-                    self.sendResponse(event, True)
-                    self.sequenceList.remove(event["sequence"])
-                if event["event"] == "QUIT":
+                if response["sequence"] in self.sequenceList:
+                    self.sendResponse(response, True)
+                    self.sequenceList.remove(response["sequence"])
+                if response["event"] == "RESET" or response["event"] == "DISCONNECT":
+                    self.disconnect()
+                if response["event"] == "QUIT":
                     self.foo()
+            elif not isinstance(frame["payload"], bytes):
+                print(frame["payload"])
             else:
                 print(f"Unhandled frame: {frame}")
 
