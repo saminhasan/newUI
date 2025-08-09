@@ -26,18 +26,21 @@ namespace msgID
     const uint8_t MOVE = 0x0E;
 }
 
-FastCRC32 mcrc32;
 
 struct __attribute__((packed)) Pose
 {   uint8_t msg_id = msgID::MOVE;
     float angle[6];
 };
 
-uint32_t createPacket(uint32_t seq, const uint8_t *payload, uint32_t payloadLen, uint8_t toID)
-{
-    uint32_t index = 0;
-    uint32_t crc = 0;
-    uint32_t packetLen = payloadLen + PACKET_OVERHEAD;
+template <typename StreamType>
+void sendPacket(StreamType &serial, uint32_t seq, const uint8_t *payload, uint32_t payloadLen, uint8_t toID)
+{   
+    static FastCRC32 mcrc32;
+    static uint32_t index, crc, packetLen;
+    static DMAMEM uint8_t sendBuffer[SEND_BUFFER_SIZE];
+    index = 0;
+    crc = 0;
+    packetLen = payloadLen + PACKET_OVERHEAD;
     sendBuffer[index] = START_MARKER; index++;
     memcpy(&sendBuffer[index], &packetLen, sizeof(packetLen)); index += sizeof(packetLen);
     memcpy(&sendBuffer[index], &seq, sizeof(seq)); index += sizeof(seq);
@@ -54,104 +57,80 @@ uint32_t createPacket(uint32_t seq, const uint8_t *payload, uint32_t payloadLen,
     // for (uint32_t i = 0; i < index; i++)
     // Debug.printf("%02X ", sendBuffer[i]);
     // Debug.println();
-    return index;
+    serial.write(sendBuffer, index);
 }
 
 template <typename StreamType>
 void heartbeat(StreamType &serial, uint32_t seq, uint8_t toID)
 {
-    uint8_t payload = msgID::HEARTBEAT;
-    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, &msgID::HEARTBEAT, 1, toID);
 }
 
 template <typename StreamType>
 void enable(StreamType &serial, uint32_t seq, uint8_t toID)
 {
-    uint8_t payload = msgID::ENABLE;
-    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, &msgID::ENABLE, 1, toID);
 }
 
 template <typename StreamType>
 void play(StreamType &serial, uint32_t seq, uint8_t toID)
 {
-    uint8_t payload = msgID::PLAY;
-    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, &msgID::PLAY, 1, toID);
 }
 
 template <typename StreamType>
 void pause(StreamType &serial, uint32_t seq, uint8_t toID)
 {
-    uint8_t payload = msgID::PAUSE;
-    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, &msgID::PAUSE, 1, toID);
 }
 
 template <typename StreamType>
 void stop(StreamType &serial, uint32_t seq, uint8_t toID)
 {
-    uint8_t payload = msgID::STOP;
-    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, &msgID::STOP, 1, toID);
 }
 
 template <typename StreamType>
 void disable(StreamType &serial, uint32_t seq, uint8_t toID)
 {
-    uint8_t payload = msgID::DISABLE;
-    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, &msgID::DISABLE, 1, toID);
 }
 
 template <typename StreamType> // more work needed here to send back shape
 void upload(StreamType &serial, uint32_t seq, uint8_t toID)
 {
-    uint8_t payload = msgID::UPLOAD;
-    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, &msgID::UPLOAD, 1, toID);
 }
 
 template <typename StreamType>
 void quit(StreamType &serial, uint32_t seq, uint8_t toID)
 {
-    uint8_t payload = msgID::QUIT;
-    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, &msgID::QUIT, 1, toID);
 }
 
 template <typename StreamType>
 void connect(StreamType &serial, uint32_t seq, uint8_t toID)
 {
-    uint8_t payload = msgID::CONNECT;
-    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, &msgID::CONNECT, 1, toID);
 }
 
 template <typename StreamType>
 void disconnect(StreamType &serial, uint32_t seq, uint8_t toID)
 {
-    uint8_t payload = msgID::DISCONNECT;
-    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, &msgID::DISCONNECT, 1, toID);
 }
 
 template <typename StreamType>
 void reset(StreamType &serial, uint32_t seq, uint8_t toID)
 {
-    uint8_t payload = msgID::RESET;
-    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, &msgID::RESET, 1, toID);
 }
 
 template <typename StreamType>
 void move(StreamType &serial, uint32_t seq, uint8_t toID, const Pose &pose)
 {
-    uint8_t payload[sizeof(Pose)];
-    memcpy(payload, &pose, sizeof(Pose));
-    uint32_t packetSize = createPacket(seq, payload, sizeof(payload), toID);
-    serial.write(sendBuffer, packetSize);
+    const uint8_t* bytes = reinterpret_cast<const uint8_t*>(&pose);
+    sendPacket(serial, seq, bytes, sizeof(Pose), toID);
 }
 
 
@@ -159,15 +138,13 @@ template <typename StreamType>
 void ack(StreamType &serial, uint32_t seq, uint8_t msgID, uint8_t toID)
 {
     uint8_t payload[2] = {msgID::ACK, msgID};
-    uint32_t packetSize = createPacket(seq, payload, 2, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, payload, 2, toID);
 }
 
 template <typename StreamType>
 void nak(StreamType &serial, uint32_t seq, uint8_t msgID, uint8_t toID)
 {
     uint8_t payload[2] = {msgID::NAK, msgID};
-    uint32_t packetSize = createPacket(seq, payload, 2, toID);
-    serial.write(sendBuffer, packetSize);
+    sendPacket(serial, seq, payload, 2, toID);
 }
 #endif // MESSAGES_H
