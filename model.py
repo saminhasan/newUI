@@ -3,6 +3,7 @@ states: list[str] = [
     "IDLE",
     "DISCONNECTED",
     "CONNECTED",
+    "READY",
     "STOPPED",
     "PLAYING",
     "PAUSED",

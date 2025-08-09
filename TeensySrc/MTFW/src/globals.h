@@ -4,7 +4,9 @@
 #include <stdint.h>
 #include <Arduino.h>
 #define Debug SerialUSB1
-#define NODE_ID 0x00
+#define NODE_ID_MASTER 0x00
+#define NODE_ID_PC 0xFF
+#define NODE_ID NODE_ID_MASTER
 static constexpr size_t SEND_BUFFER_SIZE     = 65536; // 64 KB = at 60 MB/s / 1ms
 static constexpr size_t PACKET_OVERHEAD      = 16;
 static constexpr size_t MAX_PACKET_SIZE      = size_t(8192*1000 + PACKET_OVERHEAD);               // 4 MB for the packet buffer

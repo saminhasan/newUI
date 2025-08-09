@@ -1,14 +1,8 @@
-from enum import Enum, auto
-import struct
 import zlib
+import struct
+from enum import Enum, auto
 from typing import Callable, Optional
 from Hexlink.commands import START_MARKER, END_MARKER, PACKET_OVERHEAD, MAX_PACKET_SIZE, msgIDs
-
-# These should already be defined in your module:
-# START_MARKER = 0x01
-# END_MARKER   = 0x04   # or whatever your end-marker is
-# PACKET_OVERHEAD = header_bytes + start + end  # e.g. 16
-# MAX_PACKET_SIZE  = <your maximum allowed packet length>
 
 
 class ParseState(Enum):
@@ -96,10 +90,8 @@ class Parser:
                             "sequence": self._sequence,
                             "from": self._from_id,
                             "to": self._to_id,
-                            "crc": self._crc_expected,
-                            "msg_id": payload[0] if payload else None,
-                            "msg_name": msgIDs.get(bytes([payload[0]]), "UNKNOWN"),
-                            "payload": payload,
+                            "msg_id": msgIDs.get(bytes([payload[0]]), "UNKNOWN"),
+                            "payload": payload[1:],
                         }
                         frames.append(frame)
                         del buffer[: self._payload_size + 1]  # Remove payload + end marker
@@ -121,9 +113,10 @@ class Parser:
                     self.state = ParseState.AWAIT_START
 
                 case ParseState.PACKET_ERROR:
+                    print("[Parser.parse] : Dropping Packet")
                     self.state = ParseState.AWAIT_START
 
                 case _:  # default case
                     self.state = ParseState.AWAIT_START
 
-        return frames
+        # return frames

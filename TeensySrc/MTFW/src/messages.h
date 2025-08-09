@@ -16,10 +16,13 @@ namespace msgID
     const uint8_t PAUSE = 0x04;
     const uint8_t STOP = 0x05;
     const uint8_t DISABLE = 0x06;
-    const uint8_t DATA = 0x07;
+    const uint8_t UPLOAD = 0x07; // equivalent to msgID::UPLOAD
     const uint8_t ACK = 0x08;
     const uint8_t NAK = 0x09;
     const uint8_t RESET = 0x0A;
+    const uint8_t QUIT = 0x0B;
+    const uint8_t CONNECT = 0x0C;
+    const uint8_t DISCONNECT = 0x0D;
 }
 
 FastCRC32 mcrc32;
@@ -41,12 +44,13 @@ uint32_t createPacket(uint32_t seq, const uint8_t *payload, uint32_t payloadLen,
     memcpy(&sendBuffer[index], payload, payloadLen);
     index += payloadLen;
     sendBuffer[index++] = END_MARKER;
-    Debug.printf("msgID : %02X|", payload[0]);
-    for (uint32_t i = 0; i < index; i++)
-    Debug.printf("%02X ", sendBuffer[i]);
-    Debug.println();
+    // Debug.printf("msgID : %02X|", payload[0]);
+    // for (uint32_t i = 0; i < index; i++)
+    // Debug.printf("%02X ", sendBuffer[i]);
+    // Debug.println();
     return index;
 }
+
 template <typename StreamType>
 void heartbeat(StreamType &serial, uint32_t seq, uint8_t toID)
 {
@@ -54,6 +58,7 @@ void heartbeat(StreamType &serial, uint32_t seq, uint8_t toID)
     uint32_t packetSize = createPacket(seq, &payload, 1, toID);
     serial.write(sendBuffer, packetSize);
 }
+
 template <typename StreamType>
 void enable(StreamType &serial, uint32_t seq, uint8_t toID)
 {
@@ -61,6 +66,7 @@ void enable(StreamType &serial, uint32_t seq, uint8_t toID)
     uint32_t packetSize = createPacket(seq, &payload, 1, toID);
     serial.write(sendBuffer, packetSize);
 }
+
 template <typename StreamType>
 void play(StreamType &serial, uint32_t seq, uint8_t toID)
 {
@@ -68,6 +74,7 @@ void play(StreamType &serial, uint32_t seq, uint8_t toID)
     uint32_t packetSize = createPacket(seq, &payload, 1, toID);
     serial.write(sendBuffer, packetSize);
 }
+
 template <typename StreamType>
 void pause(StreamType &serial, uint32_t seq, uint8_t toID)
 {
@@ -75,6 +82,7 @@ void pause(StreamType &serial, uint32_t seq, uint8_t toID)
     uint32_t packetSize = createPacket(seq, &payload, 1, toID);
     serial.write(sendBuffer, packetSize);
 }
+
 template <typename StreamType>
 void stop(StreamType &serial, uint32_t seq, uint8_t toID)
 {
@@ -82,6 +90,7 @@ void stop(StreamType &serial, uint32_t seq, uint8_t toID)
     uint32_t packetSize = createPacket(seq, &payload, 1, toID);
     serial.write(sendBuffer, packetSize);
 }
+
 template <typename StreamType>
 void disable(StreamType &serial, uint32_t seq, uint8_t toID)
 {
@@ -89,6 +98,39 @@ void disable(StreamType &serial, uint32_t seq, uint8_t toID)
     uint32_t packetSize = createPacket(seq, &payload, 1, toID);
     serial.write(sendBuffer, packetSize);
 }
+
+template <typename StreamType> // more work needed here to send back shape
+void upload(StreamType &serial, uint32_t seq, uint8_t toID)
+{
+    uint8_t payload = msgID::UPLOAD;
+    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
+    serial.write(sendBuffer, packetSize);
+}
+
+template <typename StreamType>
+void quit(StreamType &serial, uint32_t seq, uint8_t toID)
+{
+    uint8_t payload = msgID::QUIT;
+    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
+    serial.write(sendBuffer, packetSize);
+}
+
+template <typename StreamType>
+void connect(StreamType &serial, uint32_t seq, uint8_t toID)
+{
+    uint8_t payload = msgID::CONNECT;
+    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
+    serial.write(sendBuffer, packetSize);
+}
+
+template <typename StreamType>
+void disconnect(StreamType &serial, uint32_t seq, uint8_t toID)
+{
+    uint8_t payload = msgID::DISCONNECT;
+    uint32_t packetSize = createPacket(seq, &payload, 1, toID);
+    serial.write(sendBuffer, packetSize);
+}
+
 template <typename StreamType>
 void reset(StreamType &serial, uint32_t seq, uint8_t toID)
 {
@@ -96,6 +138,7 @@ void reset(StreamType &serial, uint32_t seq, uint8_t toID)
     uint32_t packetSize = createPacket(seq, &payload, 1, toID);
     serial.write(sendBuffer, packetSize);
 }
+
 template <typename StreamType>
 void ack(StreamType &serial, uint32_t seq, uint8_t msgID, uint8_t toID)
 {

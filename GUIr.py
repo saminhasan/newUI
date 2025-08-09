@@ -178,7 +178,7 @@ class App(ctk.CTk):
             self.pauseBtn.configure(fg_color="yellow3")
             self.playBtn.configure(fg_color="transparent")
             self.stopBtn.configure(fg_color="transparent")
-        elif current_state == "STOPPED":
+        elif current_state == "STOPPED" or current_state == "READY":
             self.stopBtn.configure(fg_color="red")
             self.playBtn.configure(fg_color="transparent")
             self.pauseBtn.configure(fg_color="transparent")
@@ -232,13 +232,13 @@ class App(ctk.CTk):
 
     def responseHandler(self, VirtualEvent=None) -> None:
         # return
-        print(self.response)
+        # print(self.response)
         event = self.response.get("event", None)
         status = self.response.get("status", None)
         if status == "ACK":
             if event in self.fsm.available_transitions():
                 self.fsm.trigger(event)
-                print(self.fsm.available_transitions(), self.fsm.state)
+                # print(self.fsm.available_transitions(), self.fsm.state)
                 if event != "QUIT":
                     self.configure_widgets(self.fsm.available_transitions(), self.fsm.state)
             else:

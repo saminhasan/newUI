@@ -1,13 +1,13 @@
 import zlib
 import struct
 import numpy as np
+from enum import IntEnum
 
 PACKET_OVERHEAD = 16
+MIN_PACKET_SIZE = 17  # START(1) + LEN(4) + SEQ(4) + FROM(1) + TO(1) + CRC(4)+ PAYLOAD(1) + END(1)
 MAX_PACKET_SIZE = 8192_000 + PACKET_OVERHEAD
 START_MARKER = bytes([0x01])
 END_MARKER = bytes([0x04])
-
-from enum import IntEnum
 
 
 class MsgID(IntEnum):

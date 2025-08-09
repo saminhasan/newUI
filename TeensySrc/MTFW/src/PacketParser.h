@@ -135,7 +135,6 @@ public:
                     Debug.printf("Unknown error\n");
                 Debug.printf("Packet Info: len=%u, size=%u, seq=%u, from=%u, to=%u, msgID=0x%02X\n",
                     pktInfo.packetLength, pktInfo.payloadSize, pktInfo.sequenceNumber, pktInfo.fromID, pktInfo.toID, pktInfo.msgID);
-            
                 parseState = ParseState::PACKET_ERROR;
             }
             break;
@@ -151,7 +150,7 @@ public:
         }
         case ParseState::PACKET_ERROR:
         {
-            // Debug.println("Packet error, resetting parser state");
+            Debug.println("Packet error, resetting parser state");
             parseState = ParseState::AWAIT_START;
             break;
         }

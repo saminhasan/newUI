@@ -32,50 +32,49 @@ void handlePacket(Parser<MAX_PACKET_SIZE> &parser)
     switch (pktInfo.msgID)
     {
         case msgID::HEARTBEAT:
-            // Debug.printf("%lu : HEARTBEAT received\n", pktInfo.sequenceNumber);
-            ack(Serial, pktInfo.sequenceNumber, msgID::HEARTBEAT, 255);
+            ack(Serial, pktInfo.sequenceNumber, msgID::HEARTBEAT, NODE_ID_PC);
             break;
         case msgID::ENABLE:
-            Debug.printf("%lu : ENABLE received\n", pktInfo.sequenceNumber);
-            // enable(Serial, pktInfo.sequenceNumber, 255);
-            ack(Serial, pktInfo.sequenceNumber, msgID::ENABLE, 255);
-
+            ack(Serial, pktInfo.sequenceNumber, msgID::ENABLE, NODE_ID_PC);
             break;
         case msgID::PLAY:
-            // play(Serial, pktInfo.sequenceNumber, 255);
-            ack(Serial, pktInfo.sequenceNumber, msgID::PLAY, 255);
-
+            ack(Serial, pktInfo.sequenceNumber, msgID::PLAY, NODE_ID_PC);
             break;
         case msgID::PAUSE:
-            // pause(Serial, pktInfo.sequenceNumber, 255);
-            ack(Serial, pktInfo.sequenceNumber, msgID::PAUSE, 255);
+            ack(Serial, pktInfo.sequenceNumber, msgID::PAUSE, NODE_ID_PC);
             break;
         case msgID::STOP:
-            // stop(Serial, pktInfo.sequenceNumber, 255);
-            ack(Serial, pktInfo.sequenceNumber, msgID::STOP, 255);
+            ack(Serial, pktInfo.sequenceNumber, msgID::STOP, NODE_ID_PC);
             break;
         case msgID::DISABLE:
-            // disable(Serial, pktInfo.sequenceNumber, 255);
-            ack(Serial, pktInfo.sequenceNumber, msgID::DISABLE, 255);
+            ack(Serial, pktInfo.sequenceNumber, msgID::DISABLE, NODE_ID_PC);
             break;
-        case msgID::DATA:
+        case msgID::UPLOAD:
             arrayLength = pktInfo.payloadSize / (6 * sizeof(float));
             if (arrayLength > maxArrayLength)
             {
                 Debug.printf("Error: arrayLength %u > max %u\n", arrayLength, maxArrayLength);
-                nak(Serial, pktInfo.sequenceNumber, msgID::DATA, 255);
+                nak(Serial, pktInfo.sequenceNumber, msgID::UPLOAD, NODE_ID_PC);
             }
             else
             {
                 parser.packetBuffer.readBytes(dataBuffer.bytes, pktInfo.payloadSize);
                 Debug.printf("%lu : DATA: %u rows\n", pktInfo.sequenceNumber, arrayLength);
-                ack(Serial, pktInfo.sequenceNumber, msgID::DATA, 255);
+                ack(Serial, pktInfo.sequenceNumber, msgID::UPLOAD, NODE_ID_PC);
                 // printArray(dataBuffer.data, arrayLength);
             }
             break;
         case msgID::RESET:
-            // reset(Serial, pktInfo.sequenceNumber, 255);
-            ack(Serial, pktInfo.sequenceNumber, msgID::RESET, 255);
+            ack(Serial, pktInfo.sequenceNumber, msgID::RESET, NODE_ID_PC);
+            break;
+        case msgID::QUIT:
+            ack(Serial, pktInfo.sequenceNumber, msgID::QUIT, NODE_ID_PC);
+            break;
+        case msgID::CONNECT:
+            ack(Serial, pktInfo.sequenceNumber, msgID::CONNECT, NODE_ID_PC);
+            break;
+        case msgID::DISCONNECT:
+            ack(Serial, pktInfo.sequenceNumber, msgID::DISCONNECT, NODE_ID_PC);
             break;
         default:
             Debug.printf("Unknown msgID: 0x%02X\n", pktInfo.msgID);
