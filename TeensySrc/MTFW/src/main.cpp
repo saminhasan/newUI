@@ -1,5 +1,6 @@
 #include "imports.h"
 #include <messages.h>
+extern uint32_t external_psram_size;
 void setup()
 {
     pinMode(LED_BUILTIN, OUTPUT);
@@ -11,7 +12,8 @@ void setup()
         logInfo(Serial, "Crash report:%s\n", String(CrashReport).c_str());
     else
         logInfo(Serial, "No CrashReport\n");
-    TickTock.begin(ticktok, 1000 * 1000 * 5); // Call ticktok every 5 secondss
+    TickTock.begin(ticktok, 1000 * 1000 * 5); // Call ticktok every 5 seconds
+    logInfo(Serial, "External PSRAM size: %lu\n", external_psram_size);
 }
 void serialEvent()
 {
