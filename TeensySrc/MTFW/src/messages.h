@@ -144,22 +144,35 @@ void nak(StreamType &serial, uint32_t seq, uint8_t toID, uint8_t msgID)
     sendPacket(serial, uint32_t(1), seq, toID, msgID::NAK, &msgID);
 }
 
+// template <typename StreamType>
+// void logInfo(StreamType &serial, const char *fmt, ...)
+// {
+//     uint32_t seq = millis(); // Use current time as sequence number
+//     uint8_t toID = NODE_ID_PC;
+
+//     va_list args;
+//     va_start(args, fmt);
+//     int len = vsnprintf(nullptr, 0, fmt, args) + 1;
+//     va_end(args);
+
+//     char msg[len];
+//     va_start(args, fmt);
+//     vsnprintf(msg, len, fmt, args);
+//     va_end(args);
+//     sendPacket(serial, len, seq, toID, msgID::INFO, reinterpret_cast<const uint8_t*>(msg));
+// }
 template <typename StreamType>
 void logInfo(StreamType &serial, const char *fmt, ...)
 {
+    constexpr size_t BUF_SIZE = 1024;
+    static char msg[BUF_SIZE];
     uint32_t seq = millis(); // Use current time as sequence number
     uint8_t toID = NODE_ID_PC;
-
     va_list args;
     va_start(args, fmt);
-    int len = vsnprintf(nullptr, 0, fmt, args) + 1;
+    int len = vsnprintf(msg, BUF_SIZE, fmt, args) + 1;
     va_end(args);
-
-    char msg[len];
-    va_start(args, fmt);
-    vsnprintf(msg, len, fmt, args);
-    va_end(args);
+    if (len > static_cast<int>(BUF_SIZE)) len = BUF_SIZE; // clamp
     sendPacket(serial, len, seq, toID, msgID::INFO, reinterpret_cast<const uint8_t*>(msg));
 }
-
 #endif // MESSAGES_H
