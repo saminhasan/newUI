@@ -7,8 +7,10 @@ from multiprocessing import Process, Pipe
 from multiprocessing.connection import Connection
 from model import FSM
 from threading import Thread
-from serial_process import serialServer
 
+# from serial_process import serialServer
+
+from serial_process_threaded import serialServer
 
 WIDTH: int = 800
 HEIGHT: int = 480
@@ -198,7 +200,7 @@ class App(ctk.CTk):
         else:
             self.portSelect.configure(values=[])
 
-    def fileHandler(self, event_name="UPLOAD") -> None:
+    def fileHandler(self, event_name="UPLOAD") -> None:  # have a app handler
         # file_path = filedialog.askopenfilename(title="Select File", filetypes=[("All Files", "*.*")])
         # if file_path:  # call checking function here or maybe even plot the file
         #     self.requestHandler(event_name, filePath=file_path)

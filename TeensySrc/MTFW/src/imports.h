@@ -29,7 +29,7 @@ void Reboot(uint32_t sequenceNumber)
     for (int i = 5; i > 0; i--)
     {
         logInfo(Serial,"%d... \n", i);
-        wait(256);
+        wait(64);
     }
     logInfo(Serial,"\nReboot");
     ack(Serial, sequenceNumber, NODE_ID_PC, msgID::RESET);

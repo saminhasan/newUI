@@ -123,36 +123,36 @@ def decodePayload(payload):
     _id = msgIDs.get(bytes([payload[0]]), "UNKNOWN")
     match _id:
         case "UNKNOWN":
-            decodePayload = None
+            decodedPayload = None
         case "HEARTBEAT":
-            decodePayload = "HEARTBEAT"
+            decodedPayload = "HEARTBEAT"
         case "ENABLE":
-            decodePayload = "ENABLE"
+            decodedPayload = "ENABLE"
         case "PLAY":
-            decodePayload = "PLAY"
+            decodedPayload = "PLAY"
         case "PAUSE":
-            decodePayload = "PAUSE"
+            decodedPayload = "PAUSE"
         case "STOP":
-            decodePayload = "STOP"
+            decodedPayload = "STOP"
         case "DISABLE":
-            decodePayload = "DISABLE"
+            decodedPayload = "DISABLE"
         case "ACK":
-            decodePayload = msgIDs.get(bytes([payload[1]]), "UNKNOWN")
+            decodedPayload = msgIDs.get(bytes([payload[1]]), "UNKNOWN")
         case "NAK":
-            decodePayload = msgIDs.get(bytes([payload[1]]), "UNKNOWN")
+            decodedPayload = msgIDs.get(bytes([payload[1]]), "UNKNOWN")
         case "RESET":
-            decodePayload = "RESET"
+            decodedPayload = "RESET"
         case "QUIT":
-            decodePayload = "QUIT"
+            decodedPayload = "QUIT"
         case "CONNECT":
-            decodePayload = "CONNECT"
+            decodedPayload = "CONNECT"
         case "DISCONNECT":
-            decodePayload = "DISCONNECT"
+            decodedPayload = "DISCONNECT"
         case "UPLOAD" | "MOVE":
-            decodePayload = np.frombuffer(payload[1:], dtype=np.float32).reshape(-1, 6)
+            decodedPayload = np.frombuffer(payload[1:], dtype=np.float32).reshape(-1, 6)
         case "INFO":
-            decodePayload = payload[1:].decode("utf-8")
+            decodedPayload = payload[1:].decode("utf-8")
         case _:
-            decodePayload = payload[1:]  # Default case, return raw payload
-    # print(f"Decoded payload: {_id}, Data: {decodePayload}")
-    return _id, decodePayload
+            decodedPayload = payload[1:]  # Default case, return raw payload
+    # print(f"Decoded payload: {_id}, Data: {decodedPayload}")
+    return _id, decodedPayload
