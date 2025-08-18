@@ -60,7 +60,7 @@ class App(ctk.CTk):
             self.controlPanel,
             values=[""],
             dropdown_pressed_callback=self.dropdown_callback,
-            width=280,
+            width=320,
             state="readonly",
             command=lambda event: self.requestHandler("PORTSELECT", port=event),
         )
@@ -235,14 +235,19 @@ class App(ctk.CTk):
         # print(self.response)
         event = self.response.get("event", None)
         status = self.response.get("status", None)
+        popup = self.response.get("popup", False)
         if status:
             if event in self.fsm.available_transitions():
                 self.fsm.trigger(event)
                 # print(self.fsm.available_transitions(), self.fsm.state)
                 if event != "QUIT":
                     self.configure_widgets(self.fsm.available_transitions(), self.fsm.state)
+                if popup:
+                    print(f"POPUP: {popup}")
             else:
-                raise ValueError(f"Event {event} not in: {self.fsm.available_transitions()}")
+                raise RuntimeError(
+                    f"Transition : {event} not valid for Current State : {self.fsm.state}\n Valid Transitions: {self.fsm.available_transitions() }"
+                )
         else:
             print(f"NAK : {self.response}")
 

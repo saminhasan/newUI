@@ -14,7 +14,7 @@ transitions: list[dict[str, str | list[str]]] = [
     {"transition": "PORTSELECT", "source": "IDLE", "dest": "DISCONNECTED"},
     {"transition": "PORTSELECT", "source": "DISCONNECTED", "dest": "DISCONNECTED"},
     {"transition": "CONNECT", "source": "DISCONNECTED", "dest": "CONNECTED"},
-    {"transition": "DISCONNECT", "source": states[2:], "dest": "DISCONNECTED"},
+    {"transition": "DISCONNECT", "source": states[1:], "dest": "DISCONNECTED"},
     {"transition": "ENABLE", "source": "CONNECTED", "dest": "STOPPED"},
     {"transition": "UPLOAD", "source": "STOPPED", "dest": "READY"},
     {"transition": "PLAY", "source": "READY", "dest": "PLAYING"},
@@ -22,7 +22,7 @@ transitions: list[dict[str, str | list[str]]] = [
     {"transition": "PLAY", "source": "PAUSED", "dest": "PLAYING"},
     {"transition": "STOP", "source": "PLAYING", "dest": "STOPPED"},
     {"transition": "STOP", "source": "PAUSED", "dest": "STOPPED"},
-    {"transition": "RESET", "source": states[1:], "dest": "DISCONNECTED"},
+    {"transition": "RESET", "source": states[2:], "dest": "DISCONNECTED"},
     {"transition": "DISABLE", "source": states[2:], "dest": "ERROR"},
     {"transition": "QUIT", "source": states, "dest": "IDLE"},
 ]

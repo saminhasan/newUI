@@ -2,7 +2,7 @@
 #define MESSAGES_H
 
 #include <stdint.h>
-#include <globals.h>
+#include "globals.h"
 #include <FastCRC.h>
 
 #define START_MARKER 0x01

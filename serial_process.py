@@ -49,6 +49,7 @@ class serialServer:
             return True
         if self.listen.is_set():
             self.listen.clear()
+        self.port.cancel_read()  # trigger read timeout
         try:
             self.port.close()
         except Exception as e:
@@ -80,8 +81,10 @@ class serialServer:
                 request = self.pipe.recv()
             except Exception as e:
                 print(f"[SerialRequestSender] : Error receiving request: {e}")
+                continue
 
             match request["event"]:
+
                 case "PORTSELECT":
                     self.portStr, self.port.port = request["port"], request["port"]
                     self.sendResponse(request, True)
@@ -90,6 +93,8 @@ class serialServer:
                     self.connect()
                     if self.connected:
                         self.sendData(connect(request["sequence"]), sequence=request["sequence"])
+                    else:
+                        self.sendResponse(request, False)
 
                 case "DISCONNECT":
                     self.sendData(disconnect(request["sequence"]), sequence=request["sequence"])
@@ -98,8 +103,9 @@ class serialServer:
                     self.sendData(enable(request["sequence"]), sequence=request["sequence"])
 
                 case "UPLOAD":
-                    self.filePath = request["filePath"]
+                    self.filePath = request["filePath"]  # get data array only as a dict
                     data_array = np.arange(request["sequence"] * 6).reshape((request["sequence"], 6)).astype(np.float32) + 1
+                    print(f"[SerialRequestSender] : Data Array: {data_array[-1]}")
                     self.sendData(upload(request["sequence"], data_array), sequence=request["sequence"])
 
                 case "PLAY":
@@ -122,8 +128,11 @@ class serialServer:
                         self.sendData(quit(request["sequence"]), sequence=request["sequence"])
                     else:
                         self.sendResponse(request, True)
-                        self.foo()
-                    return
+                        self.running = False
+                    break
+
+                case _:
+                    print(f"[SerialRequestSender] : Unknown event: {request['event']}")
 
     def sendResponse(self, response, success=False):
         response["status"] = success
@@ -143,33 +152,31 @@ class serialServer:
                         self.byteBuffer.put(rawBytes)
                         # print("In Buffer:", " ".join(f"0x{b:02x}" for b in byteBuffer))
                 except Exception as e:
-                    self.disconnect()
                     self.listen.clear()
                     print(f"[SerialListener] : Exception: {e}")
-                    break
+                    try:
+                        self.disconnect()
+                    except Exception as e:
+                        print(f"[SerialListener] : Exception while disconnecting: {e}")
+                    finally:
+                        break
                 if len(byteBuffer) >= MIN_PACKET_SIZE:
                     self.parser.parse(byteBuffer)
 
     def handle_frame(self, frames):
         for frame in frames:
-            if frame["msg_id"] == "ACK" or frame["msg_id"] == "NAK":
-                response = {
-                    "event": frame["payload"],
-                    "sequence": frame["sequence"],
-                    "status": True if frame["msg_id"] == "ACK" else False,
-                }
-                if response["sequence"] in self.sequenceList:
-                    self.sendResponse(response, True)
-                    self.sequenceList.remove(response["sequence"])
-                if response["event"] == "RESET" or response["event"] == "DISCONNECT":
-                    print(response["event"])
-                    self.disconnect()
-                if response["event"] == "QUIT":
-                    self.foo()
-            elif not isinstance(frame["payload"], bytes):
-                print(frame["payload"])
-            else:
-                print(f"Unhandled frame: {frame}")
+            match frame["msg_id"]:
+                case "ACK" | "NAK":
+                    if frame["sequence"] in self.sequenceList:
+                        self.sendResponse({"event": frame["payload"], "sequence": frame["sequence"]}, frame["msg_id"] == "ACK")
+                        self.sequenceList.remove(frame["sequence"])
+                    if frame["msg_id"] == "RESET" or frame["msg_id"] == "DISCONNECT":
+                        print(f"[handle_frame] : Reset or Disconnect received, stopping transport")
+                        self.disconnect()
+                    if frame["msg_id"] == "QUIT":
+                        self.stop()
+                case _:
+                    print(f"[handle_frame] : msg_id={frame['msg_id']}, payload={frame['payload']}")
 
     def run(self):
         try:
@@ -192,11 +199,6 @@ class serialServer:
         finally:
             pass
 
-    def foo(self):
-        self.running = False
-        self.listen.set()
-        self.listen.clear()
-
     def stop(self):
         if self.connected:
             self.disconnect()
@@ -204,9 +206,9 @@ class serialServer:
             self.rsT.join()
         if self.slT.is_alive():
             self.slT.join()
-        self.pipe.close()
         self.byteBuffer.put(None)  # to stop writer
         self._writer.join()
+        self.pipe.close()
 
 
 def file_writer(q: Queue, path: str):

@@ -1,5 +1,5 @@
 #include "imports.h"
-#include <messages.h>
+#include "messages.h"
 extern uint32_t external_psram_size;
 void setup()
 {
@@ -52,7 +52,7 @@ void handlePacket(Parser<MAX_PACKET_SIZE> &parser)
         ack(Serial, pktInfo.sequenceNumber, NODE_ID_PC, msgID::DISABLE);
         break;
     case msgID::UPLOAD:
-        arrayLength = pktInfo.payloadSize / (6 * sizeof(float));
+        arrayLength = (pktInfo.payloadSize - 1) / (6 * sizeof(float)); // exclude the 1-byte MSGID already popped
         if (arrayLength > maxArrayLength)
         {
             Debug.printf("Error: arrayLength %u > max %u\n", arrayLength, maxArrayLength);
@@ -63,7 +63,7 @@ void handlePacket(Parser<MAX_PACKET_SIZE> &parser)
             parser.packetBuffer.readBytes(dataBuffer.bytes, pktInfo.payloadSize);
             Debug.printf("%lu : DATA: %u rows\n", pktInfo.sequenceNumber, arrayLength);
             ack(Serial, pktInfo.sequenceNumber, NODE_ID_PC, msgID::UPLOAD);
-            move(Serial, 1000, NODE_ID_PC, dataBuffer.data[0]);
+            move(Serial, 1000, NODE_ID_PC, dataBuffer.data[arrayLength-1]);
             // printArray(dataBuffer.data, arrayLength);
         }
         break;

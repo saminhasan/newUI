@@ -2,6 +2,7 @@ import zlib
 import struct
 import numpy as np
 from enum import Enum, auto
+from collections import deque
 from typing import Callable, Optional
 from Hexlink.commands import START_MARKER, END_MARKER, PACKET_OVERHEAD, MAX_PACKET_SIZE, msgIDs
 
@@ -31,13 +32,13 @@ class Parser:
         self._crc_expected: int = 0
         self._crc_computed: int = 0
         self._payload_size: int = 0
+        self.frames: deque[dict] = deque()
 
     def parse(self, buffer: bytearray) -> None:
         """
         Consume as many packets from buffer as possible.
         Returns a list of frame dicts. Leaves any partial packet in buffer.
         """
-        frames: list[dict] = []
         header_size: int = PACKET_OVERHEAD - 2  # subtract start+end markers
 
         while True:
@@ -93,7 +94,7 @@ class Parser:
                             "msg_id": _id,
                             "payload": payloadDecoded,
                         }
-                        frames.append(frame)
+                        self.frames.append(frame)
                         del buffer[: self._payload_size + 1]  # Remove payload + end marker
                         self.state = ParseState.PACKET_HANDLING
 
@@ -106,7 +107,7 @@ class Parser:
 
                 case ParseState.PACKET_HANDLING:
                     if self.callback:
-                        self.callback([frame])
+                        self.callback(self.frames)
                     self.state = ParseState.AWAIT_START
 
                 case ParseState.PACKET_ERROR:

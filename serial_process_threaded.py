@@ -2,7 +2,8 @@ import os
 import time
 import serial
 import serial.threaded
-from parser import Parser
+import numpy as np
+from parser import Parser, decodePayload
 from Hexlink.commands import *
 from multiprocessing import Process, Queue
 from more_itertools import chunked
@@ -34,15 +35,20 @@ class SerialProtocol(serial.threaded.Protocol):
                 self.serial_server.parser.parse(self.buffer)
 
         except Exception as e:
-            print(f"[data_received] : Exception: {e}")
+            print(f"[data_received] : Exception: {e} | Data : {data}")
 
     def connection_lost(self, exc):
         """Called when connection is lost"""
         if exc:
-            print(f"Serial connection lost: {exc}")
+            print(f"Protocol : [connection_lost] : Error : Serial connection lost: {exc}")
         else:
-            print("Serial connection closed")
-        self.serial_server.on_connection_lost()
+            print("Protocol : [connection_lost] : Serial connection closed cleanly")
+        self.serial_server.on_connection_lost(popup=True if exc else False)
+
+    def disconnect_from_protocol(self):
+        """Disconnect from within the protocol thread"""
+        if self.transport:
+            self.transport.close()  # This will trigger connection_lost()
 
 
 class serialServer:
@@ -54,7 +60,7 @@ class serialServer:
         self.sequenceList = []
         self.byteBuffer = Queue()
         self.startTimeStr = time.strftime("%Y-%m-%d-%H-%M-%S")
-        self.parser = Parser(callback=lambda frame: self.handle_frame(frame))
+        self.parser = None  # Will be initialized in run()
         self.protocol = None
         self.serial_worker = None
         self.port: serial.Serial = serial.Serial(port=None, timeout=None)
@@ -65,54 +71,52 @@ class serialServer:
         try:
             return self.port.is_open and self.serial_worker is not None
         except Exception as e:
-            print(f"Error in connected property: {e}")
+            print(f"[connected] : Error - {e}")
             return False
 
     def connect(self):
-        if self.connected:  # Only disconnect if we're actually connected
-            self.disconnect()
         if not self.portStr:
-            print("[connect] : No Port Selected")
+            print("[connect] : No Port Selected")  # should not happen, but still here to handle gracefully
             return False
+
+        if self.connected and (self.port.port == self.portStr):  # Only disconnect if we're actually connected
+            return True
+
         try:
             self.port.open()
-            # Start the threaded serial worker
             self.serial_worker = serial.threaded.ReaderThread(self.port, lambda: SerialProtocol(self))
-            print(type(self.serial_worker))
             self.serial_worker.start()
             self.transport, self.protocol = self.serial_worker.connect()
             return True
         except Exception as e:
-            print(f"[connect] : Error opening port: {e}")
+            print(f"[connect] : Error opening port - {e}")
             return False
 
     def disconnect(self):
         if not self.connected:
-            print(f"[disconnect] : Not connected | {self.port.is_open}")
             return True
         try:
-            if self.protocol:
-                self.protocol.disconnect_from_protocol()
-                print(f"[disconnect] : Protocol disconnected| {self.port.is_open}")
-            # else:
-            # Fallback to direct disconnection
-            # if self.serial_worker:
-            #     self.serial_worker.close()
-            #     self.serial_worker = None
-            #     self.protocol = None
-            # if self.port.is_open:
-            #     self.port.close()
+            self.transport.alive = False  # tell loop to stop
+            if hasattr(self.transport.serial, "cancel_read"):
+                self.transport.serial.cancel_read()
+            if self.port.is_open:
+                self.port.close()
         except Exception as e:
-            print(f"[disconnect] : Error closing port: {e} | {self.port.is_open}")
+            print(f"[disconnect] : Error closing port - {e} | {self.port.is_open}")
             return False
-        print(f"[disconnect] : Successfully disconnected | {self.port.is_open}")
         return True
 
-    def on_connection_lost(self):
+    def on_connection_lost(self, popup: bool = False):
         """Called by protocol when connection is lost"""
         self.serial_worker = None
         self.protocol = None
-        print("Connection lost, resetting protocol and worker")
+        if popup:
+            self.sendResponse({"event": "DISCONNECT", "sequence": -1, "popup": "Connection lost"}, True)
+        try:
+            if self.port.is_open:
+                self.port.close()
+        except Exception as e:
+            print(f"[on_connection_lost] : Error closing port - {e} | {self.port.is_open}")
 
     def sendData(self, data: bytes, sequence: int):
         if not self.connected or not data:
@@ -129,7 +133,7 @@ class serialServer:
                     self.sequenceList.append(sequence)
                     return True
         except Exception as e:
-            print(f"[sendData] : Error in sendData: {e}")
+            print(f"[sendData] : Error in sendData - {e}")
             return False
 
     def SerialRequestSender(self):
@@ -137,7 +141,7 @@ class serialServer:
             try:
                 request = self.pipe.recv()
             except Exception as e:
-                print(f"[SerialRequestSender] : Error receiving request: {e}")
+                print(f"[SerialRequestSender] : Error receiving request - {e}")
                 continue
 
             match request["event"]:
@@ -160,8 +164,9 @@ class serialServer:
                     self.sendData(enable(request["sequence"]), sequence=request["sequence"])
 
                 case "UPLOAD":
-                    self.filePath = request["filePath"]
+                    self.filePath = request["filePath"]  # get data array only as a dict
                     data_array = np.arange(request["sequence"] * 6).reshape((request["sequence"], 6)).astype(np.float32) + 1
+                    print(f"[SerialRequestSender] : Data Array: {data_array[-1]}")
                     self.sendData(upload(request["sequence"], data_array), sequence=request["sequence"])
 
                 case "PLAY":
@@ -184,41 +189,40 @@ class serialServer:
                         self.sendData(quit(request["sequence"]), sequence=request["sequence"])
                     else:
                         self.sendResponse(request, True)
-                        self.running = False
                     break
 
                 case _:
-                    print(f"[SerialRequestSender] : Unknown event: {request['event']}")
+                    print(f"[SerialRequestSender] : Unknown event - {request['event']}")
 
     def sendResponse(self, response, success=False):
         response["status"] = success
         try:
             self.pipe.send(response)
         except Exception as e:
-            print(f"[sendResponse] : Error sending response: {e}")
+            print(f"[sendResponse] : Error sending response - {e}")
 
     def handle_frame(self, frames):
-        for frame in frames:
-            if frame["msg_id"] == "ACK" or frame["msg_id"] == "NAK":
-                response = {
-                    "event": frame["payload"],
-                    "sequence": frame["sequence"],
-                    "status": True if frame["msg_id"] == "ACK" else False,
-                }
-                if response["sequence"] in self.sequenceList:
-                    self.sendResponse(response, True)
-                    self.sequenceList.remove(response["sequence"])
-                if response["event"] == "RESET" or response["event"] == "DISCONNECT":
-                    print(f"[handle_frame | R/D] : {response['event']}")
-                    self.disconnect()
-                if response["event"] == "QUIT":
-                    self.stop()
-            else:
-                print(f"Unhandled frame: {frame}")
+        # print(f"[handle_frame] : {len(frames)} Frames Received: {frames}")
+        while frames:
+            frame = frames.popleft()
+            match frame["msg_id"]:
+                case "ACK" | "NAK":
+                    if frame["sequence"] in self.sequenceList:
+                        self.sendResponse({"event": frame["payload"], "sequence": frame["sequence"]}, frame["msg_id"] == "ACK")
+                        self.sequenceList.remove(frame["sequence"])
+                    if frame["payload"] == "RESET" or frame["payload"] == "DISCONNECT":
+                        self.disconnect()
+                    if frame["msg_id"] == "QUIT":
+                        self.stop()
+                case "INFO":
+                    print(f"[INFO] : {frame['payload']}")
+                case _:
+                    print(f"[(un)handle_frame] : msg_id={frame['msg_id']}, payload={frame['payload']}")
 
     def run(self):
         try:
             print("Serial server started.")
+            self.parser = Parser(callback=self.handle_frame)  # Initialize parser here instead of __init__
             self.running = True
             self.rsT = Thread(target=self.SerialRequestSender, name="SerialRequestSender", daemon=True)
             self._writer = Process(target=file_writer, args=(self.byteBuffer, self.path))
@@ -228,7 +232,7 @@ class serialServer:
             self.stop()
             print("Serial server stopped.")
         except Exception as e:
-            print(f"[run] : Exception in serial server run: {e}")
+            print(f"[run] : Exception in serial server run - {e}")
             self.stop()
         finally:
             pass
@@ -242,9 +246,9 @@ class serialServer:
             self.disconnect()
         if self.rsT.is_alive():
             self.rsT.join()
-        self.pipe.close()
         self.byteBuffer.put(None)  # to stop writer
         self._writer.join()
+        self.pipe.close()
 
 
 def file_writer(q: Queue, path: str):
