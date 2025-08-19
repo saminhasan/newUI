@@ -2,12 +2,12 @@
 #define PACKET_PARSER_H
 
 #include <globals.h>
-#include <RingBuffer.h>
+#include "RingBuffer.h"
 #include <FastCRC.h>
-#include <messages.h>
+#include "messages.h"
 
 void printArray(float arr[][6], size_t length)
-{
+{   if (length < 1) return;
     for (size_t i = length - 1; i < length; i++)
     {
         Debug.printf("%zu : %f %f %f %f %f %f\n", i + 1, arr[i][0], arr[i][1], arr[i][2], arr[i][3], arr[i][4], arr[i][5]);
@@ -93,8 +93,8 @@ public:
         case ParseState::AWAIT_HEADER:
             if (packetBuffer.size() >= 14)
             {
-                packetBuffer.readBytes(pktInfo.headerBytes, 14);
-                crc = CRC32.crc32(pktInfo.headerBytes, 10);
+                packetBuffer.readBytes(pktInfo.headerBytes, 14); // len (4) + seq (4) + fromID (1) + toID (1) + crc (4)
+                crc = CRC32.crc32(pktInfo.headerBytes, 10); // read the first 10 bytes for CRC, from len to toID
                 pktInfo.payloadSize = pktInfo.packetLength - PACKET_OVERHEAD;
                 if (pktInfo.payloadSize > (MAX_PACKET_SIZE - PACKET_OVERHEAD) || pktInfo.payloadSize < 0)
                 {

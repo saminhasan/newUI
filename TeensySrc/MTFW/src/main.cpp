@@ -12,7 +12,7 @@ void setup()
         logInfo(Serial, "Crash report:%s\n", String(CrashReport).c_str());
     else
         logInfo(Serial, "No CrashReport\n");
-    TickTock.begin(ticktok, 1000 * 1000 * 5); // Call ticktok every 5 seconds
+    TickTock.begin(ticktok, 100); // Call ticktok every 5 seconds
     logInfo(Serial, "External PSRAM size: %lu\n", external_psram_size);
 }
 void serialEvent()
@@ -53,7 +53,7 @@ void handlePacket(Parser<MAX_PACKET_SIZE> &parser)
         break;
     case msgID::UPLOAD:
         arrayLength = (pktInfo.payloadSize - 1) / (6 * sizeof(float)); // exclude the 1-byte MSGID already popped
-        if (arrayLength > maxArrayLength)
+        if (arrayLength > maxArrayLength || arrayLength < 1)
         {
             Debug.printf("Error: arrayLength %u > max %u\n", arrayLength, maxArrayLength);
             nak(Serial, pktInfo.sequenceNumber, NODE_ID_PC, msgID::UPLOAD);

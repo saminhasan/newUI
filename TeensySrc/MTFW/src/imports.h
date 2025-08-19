@@ -4,19 +4,20 @@
 #include "messages.h"
 #include "PacketParser.h"
 
-uint32_t arrayLength = 0;
 void handlePacket(Parser<MAX_PACKET_SIZE> &parser);
 Parser<MAX_PACKET_SIZE> parser(ringBufferArray, handlePacket);
 IntervalTimer TickTock;
 
 void ticktok()
-{
-    logInfo(Serial, "TickTock : %lu", millis());
+{   static uint32_t tickCount = 0;
+    logInfo(Serial, "--------------------------------%lu | TickTock : %lu--------------------------------", tickCount, millis());
+    tickCount ++;
 }
 
 void wait(unsigned long ms)
 {
-  unsigned long start = millis();
+  static unsigned long start = 0;
+  start = millis();
   while (millis() - start < ms)
   {
     // tick();
