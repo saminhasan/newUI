@@ -165,10 +165,16 @@ class serialServer:
 
                 case "UPLOAD":
                     self.filePath = request["filePath"]  # get data array only as a dict
-                    data_array = np.arange(request["sequence"] * 6).reshape((request["sequence"], 6)).astype(np.float32) + 1
-                    print(f"[SerialRequestSender] : Data Array: {data_array[-1]}")
+                    print(f"[SerialRequestSender] : File Path: {self.filePath}")
+                    try:
+                        data_array = np.loadtxt(fname=self.filePath, delimiter=",", dtype=np.float32)
+                        # data_array = np.arange(request["sequence"] * 6).reshape((request["sequence"], 6)).astype(np.float32) + 1
+                    except Exception as e:
+                        print(f"[SerialRequestSender] : Error loading file - {e}")
+                        self.sendResponse(request, False)
+                    print(f"[SerialRequestSender] : Data Array Size: {data_array.shape}")
+                    print(f"[SerialRequestSender] : Data Array Last Row: {data_array[-1]}")
                     self.sendData(upload(request["sequence"], data_array), sequence=request["sequence"])
-
                 case "PLAY":
                     self.sendData(play(request["sequence"]), sequence=request["sequence"])
 

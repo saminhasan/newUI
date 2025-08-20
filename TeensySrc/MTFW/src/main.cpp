@@ -12,7 +12,7 @@ void setup()
         logInfo(Serial, "Crash report:%s\n", String(CrashReport).c_str());
     else
         logInfo(Serial, "No CrashReport\n");
-    TickTock.begin(ticktok, 100); // Call ticktok every 5 seconds
+    TickTock.begin(ticktok, 10000*1000); // Call ticktok every 5 seconds
     logInfo(Serial, "External PSRAM size: %lu\n", external_psram_size);
 }
 void serialEvent()

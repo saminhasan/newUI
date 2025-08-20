@@ -295,9 +295,83 @@ Discarded input sections
  .rodata._Z10printArrayPA6_fj.str1.4
                 0x00000000       0x19 .pio\build\teensy41\src\main.cpp.o
  .text._Z10printArrayPA6_fj
-                0x00000000       0x74 .pio\build\teensy41\src\main.cpp.o
+                0x00000000       0x78 .pio\build\teensy41\src\main.cpp.o
  .text._Z4waitm
                 0x00000000       0x2c .pio\build\teensy41\src\main.cpp.o
+ .text          0x00000000        0x0 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .data          0x00000000        0x0 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .bss           0x00000000        0x0 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z23MCReqResetConfigurationPh
+                0x00000000        0x8 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z23MCResResetConfigurationPh
+                0x00000000       0x10 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z25MCReqRefreshConfigurationPh
+                0x00000000        0x8 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z25MCResRefreshConfigurationPh
+                0x00000000       0x10 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z24MCReqModifyConfigurationPh16MOTCTRL_CONFTYPEhf
+                0x00000000       0x48 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z24MCResModifyConfigurationPhP16MOTCTRL_CONFTYPES_
+                0x00000000       0x18 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z26MCReqRetrieveConfigurationPh16MOTCTRL_CONFTYPEh
+                0x00000000        0xc .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z26MCResRetrieveConfigurationPhP16MOTCTRL_CONFTYPES_Pf
+                0x00000000       0x6c .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z15MCReqStartMotorPh
+                0x00000000        0x8 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z15MCResStartMotorPh
+                0x00000000       0x10 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z14MCReqStopMotorPh
+                0x00000000        0x8 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z14MCResStopMotorPh
+                0x00000000       0x10 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z18MCReqTorqueControlPhfm
+                0x00000000       0x2c .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z18MCResTorqueControlPhPaPfS1_S1_
+                0x00000000       0xc0 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z17MCReqSpeedControlPhfm
+                0x00000000       0x3c .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z17MCResSpeedControlPhPaPfS1_S1_
+                0x00000000       0xc0 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z20MCReqPositionControlPhfm
+                0x00000000       0x2c .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z20MCResPositionControlPhPaPfS1_S1_
+                0x00000000       0xc0 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z16MCReqStopControlPh
+                0x00000000        0x8 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z16MCResStopControlPh
+                0x00000000       0x10 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z20MCReqModifyParameterPh14MOTCTRL_PARAIDf
+                0x00000000       0x28 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z20MCResModifyParameterPhP14MOTCTRL_PARAID
+                0x00000000       0x14 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z22MCReqRetrieveParameterPh14MOTCTRL_PARAID
+                0x00000000        0xc .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z22MCResRetrieveParameterPhP14MOTCTRL_PARAIDPf
+                0x00000000       0x40 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z15MCReqGetVersionPh
+                0x00000000        0x8 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z15MCResGetVersionPhPm
+                0x00000000       0x34 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z13MCReqGetFaultPh
+                0x00000000        0x8 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z13MCResGetFaultPhP15MOTCTRL_FAULTNO
+                0x00000000       0x14 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z13MCReqAckFaultPh
+                0x00000000        0x8 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z13MCResAckFaultPh
+                0x00000000       0x10 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z22MCReqRetrieveIndicatorPh14MOTCTRL_INDIID
+                0x00000000        0xc .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z22MCResRetrieveIndicatorPhP14MOTCTRL_INDIIDPf
+                0x00000000       0x38 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z13SendCmd2MotorPh
+                0x00000000        0x4 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .text._Z19ReceiveResFromMotorPh
+                0x00000000        0x4 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .comment       0x00000000       0x34 .pio\build\teensy41\src\motctrl_prot.cpp.o
+ .ARM.attributes
+                0x00000000       0x32 .pio\build\teensy41\src\motctrl_prot.cpp.o
  .text          0x00000000        0x0 .pio\build\teensy41\lib8e3\libFastCRC.a(FastCRCsw.cpp.o)
  .data          0x00000000        0x0 .pio\build\teensy41\lib8e3\libFastCRC.a(FastCRCsw.cpp.o)
  .bss           0x00000000        0x0 .pio\build\teensy41\lib8e3\libFastCRC.a(FastCRCsw.cpp.o)
@@ -1457,8 +1531,9 @@ Linker script and memory map
 LOAD c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard/crti.o
 LOAD c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard/crtbegin.o
 LOAD c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard/crt0.o
-                0x68a32398                __rtc_localtime = 0x68a32398
+                0x68a531a1                __rtc_localtime = 0x68a531a1
 LOAD .pio\build\teensy41\src\main.cpp.o
+LOAD .pio\build\teensy41\src\motctrl_prot.cpp.o
 START GROUP
 LOAD .pio\build\teensy41\lib8e3\libFastCRC.a
 LOAD .pio\build\teensy41\libFrameworkArduino.a
@@ -1594,408 +1669,409 @@ LOAD c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../
  .text._Z7ticktokv
                 0x000004bc       0x2c .pio\build\teensy41\src\main.cpp.o
                 0x000004bc                ticktok()
- .text.setup    0x000004e8       0xdc .pio\build\teensy41\src\main.cpp.o
+ .text.setup    0x000004e8       0xe0 .pio\build\teensy41\src\main.cpp.o
                 0x000004e8                setup
  .text._Z6Rebootm
-                0x000005c4       0xd4 .pio\build\teensy41\src\main.cpp.o
-                0x000005c4                Reboot(unsigned long)
+                0x000005c8       0xd4 .pio\build\teensy41\src\main.cpp.o
+                0x000005c8                Reboot(unsigned long)
  .text._Z12handlePacketR6ParserILj8388608EE
-                0x00000698      0x1cc .pio\build\teensy41\src\main.cpp.o
-                0x00000698                handlePacket(Parser<8388608u>&)
+                0x0000069c      0x1cc .pio\build\teensy41\src\main.cpp.o
+                0x0000069c                handlePacket(Parser<8388608u>&)
  .text.startup._GLOBAL__sub_I_ringBufferArray
-                0x00000864       0x50 .pio\build\teensy41\src\main.cpp.o
+                0x00000868       0x50 .pio\build\teensy41\src\main.cpp.o
  .text._ZN9FastCRC32C2Ev
-                0x000008b4        0x4 .pio\build\teensy41\lib8e3\libFastCRC.a(FastCRCsw.cpp.o)
-                0x000008b4                FastCRC32::FastCRC32()
-                0x000008b4                FastCRC32::FastCRC32()
+                0x000008b8        0x4 .pio\build\teensy41\lib8e3\libFastCRC.a(FastCRCsw.cpp.o)
+                0x000008b8                FastCRC32::FastCRC32()
+                0x000008b8                FastCRC32::FastCRC32()
  .text._ZN9FastCRC329crc32_updEPKht
-                0x000008b8      0x190 .pio\build\teensy41\lib8e3\libFastCRC.a(FastCRCsw.cpp.o)
-                0x000008b8                FastCRC32::crc32_upd(unsigned char const*, unsigned short)
+                0x000008bc      0x190 .pio\build\teensy41\lib8e3\libFastCRC.a(FastCRCsw.cpp.o)
+                0x000008bc                FastCRC32::crc32_upd(unsigned char const*, unsigned short)
  .text._ZN9FastCRC325crc32EPKht
-                0x00000a48        0xc .pio\build\teensy41\lib8e3\libFastCRC.a(FastCRCsw.cpp.o)
-                0x00000a48                FastCRC32::crc32(unsigned char const*, unsigned short)
+                0x00000a4c        0xc .pio\build\teensy41\lib8e3\libFastCRC.a(FastCRCsw.cpp.o)
+                0x00000a4c                FastCRC32::crc32(unsigned char const*, unsigned short)
  .text._ZZN6teensy23inplace_function_detail6vtableIvJEEC4EvENUlPvE_4_FUNES3_
-                0x00000a54        0x4 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
-                0x00000a54                teensy::inplace_function_detail::vtable<void>::vtable()::{lambda(void*)#1}::_FUN(void*)
- .text._ZZN6teensy23inplace_function_detail6vtableIvJEEC4EvENUlPvS3_E0_4_FUNES3_S3_
                 0x00000a58        0x4 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
-                0x00000a58                teensy::inplace_function_detail::vtable<void>::vtable()::{lambda(void*, void*)#2}::_FUN(void*, void*)
- .text._ZZN6teensy23inplace_function_detail6vtableIvJEEC4EvENUlPvS3_E1_4_FUNES3_S3_
+                0x00000a58                teensy::inplace_function_detail::vtable<void>::vtable()::{lambda(void*)#1}::_FUN(void*)
+ .text._ZZN6teensy23inplace_function_detail6vtableIvJEEC4EvENUlPvS3_E0_4_FUNES3_S3_
                 0x00000a5c        0x4 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
-                0x00000a5c                teensy::inplace_function_detail::vtable<void>::vtable()::{lambda(void*, void*)#3}::_FUN(void*, void*)
- .text._ZZN6teensy23inplace_function_detail6vtableIvJEEC4EvENUlPvE2_4_FUNES3_
+                0x00000a5c                teensy::inplace_function_detail::vtable<void>::vtable()::{lambda(void*, void*)#2}::_FUN(void*, void*)
+ .text._ZZN6teensy23inplace_function_detail6vtableIvJEEC4EvENUlPvS3_E1_4_FUNES3_S3_
                 0x00000a60        0x4 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
-                0x00000a60                teensy::inplace_function_detail::vtable<void>::vtable()::{lambda(void*)#4}::_FUN(void*)
+                0x00000a60                teensy::inplace_function_detail::vtable<void>::vtable()::{lambda(void*, void*)#3}::_FUN(void*, void*)
+ .text._ZZN6teensy23inplace_function_detail6vtableIvJEEC4EvENUlPvE2_4_FUNES3_
+                0x00000a64        0x4 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
+                0x00000a64                teensy::inplace_function_detail::vtable<void>::vtable()::{lambda(void*)#4}::_FUN(void*)
  .text._ZL7pit_isrv
-                0x00000a64       0x84 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
- .text.__tcf_0  0x00000ae8       0x20 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
+                0x00000a68       0x84 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
+ .text.__tcf_0  0x00000aec       0x20 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
  .text._ZN13IntervalTimer11beginCyclesEN6teensy16inplace_functionIFvvELj16ELj8EEEm
-                0x00000b08      0x104 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
-                0x00000b08                IntervalTimer::beginCycles(teensy::inplace_function<void (), 16u, 8u>, unsigned long)
+                0x00000b0c      0x104 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
+                0x00000b0c                IntervalTimer::beginCycles(teensy::inplace_function<void (), 16u, 8u>, unsigned long)
  .text._ZN13IntervalTimer3endEv
-                0x00000c0c       0x70 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
-                0x00000c0c                IntervalTimer::end()
+                0x00000c10       0x70 .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
+                0x00000c10                IntervalTimer::end()
  .text.startup._GLOBAL__sub_I__ZN13IntervalTimer14nvic_prioritesE
-                0x00000c7c       0x2c .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
+                0x00000c80       0x2c .pio\build\teensy41\libFrameworkArduino.a(IntervalTimer.cpp.o)
  .text._ZN5Print11printNumberEmhh.part.0
-                0x00000ca8       0x80 .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
+                0x00000cac       0x80 .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
  .text._ZN5Print5printEl
-                0x00000d28       0x18 .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
-                0x00000d28                Print::print(long)
+                0x00000d2c       0x18 .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
+                0x00000d2c                Print::print(long)
  .text._ZN5Print7printlnEv
-                0x00000d40       0x1c .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
-                0x00000d40                Print::println()
- .text._write   0x00000d5c       0x1c .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
-                0x00000d5c                _write
+                0x00000d44       0x1c .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
+                0x00000d44                Print::println()
+ .text._write   0x00000d60       0x1c .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
+                0x00000d60                _write
  .text._ZN5Print6printfEPKcz
-                0x00000d78       0x1c .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
-                0x00000d78                Print::printf(char const*, ...)
+                0x00000d7c       0x1c .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
+                0x00000d7c                Print::printf(char const*, ...)
  .text._ZN5Print11printNumberEmhh
-                0x00000d94       0x14 .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
-                0x00000d94                Print::printNumber(unsigned long, unsigned char, unsigned char)
+                0x00000d98       0x14 .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
+                0x00000d98                Print::printNumber(unsigned long, unsigned char, unsigned char)
+ *fill*         0x00000dac        0x4 
  .text._ZN5Print10printFloatEdh
-                0x00000da8      0x164 .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
-                0x00000da8                Print::printFloat(double, unsigned char)
+                0x00000db0      0x164 .pio\build\teensy41\libFrameworkArduino.a(Print.cpp.o)
+                0x00000db0                Print::printFloat(double, unsigned char)
  .text._ZN6StringD2Ev
-                0x00000f0c       0x10 .pio\build\teensy41\libFrameworkArduino.a(WString.cpp.o)
-                0x00000f0c                String::~String()
-                0x00000f0c                String::~String()
+                0x00000f14       0x10 .pio\build\teensy41\libFrameworkArduino.a(WString.cpp.o)
+                0x00000f14                String::~String()
+                0x00000f14                String::~String()
  .text._ZN6String4copyEPKcj
-                0x00000f1c       0x68 .pio\build\teensy41\libFrameworkArduino.a(WString.cpp.o)
-                0x00000f1c                String::copy(char const*, unsigned int)
+                0x00000f24       0x68 .pio\build\teensy41\libFrameworkArduino.a(WString.cpp.o)
+                0x00000f24                String::copy(char const*, unsigned int)
  .text._ZN6StringC2Eih
-                0x00000f84       0x2c .pio\build\teensy41\libFrameworkArduino.a(WString.cpp.o)
-                0x00000f84                String::String(int, unsigned char)
-                0x00000f84                String::String(int, unsigned char)
+                0x00000f8c       0x2c .pio\build\teensy41\libFrameworkArduino.a(WString.cpp.o)
+                0x00000f8c                String::String(int, unsigned char)
+                0x00000f8c                String::String(int, unsigned char)
  .text.set_arm_clock
-                0x00000fb0      0x2f0 .pio\build\teensy41\libFrameworkArduino.a(clockspeed.c.o)
-                0x00000fb0                set_arm_clock
- .text.delay    0x000012a0       0xa8 .pio\build\teensy41\libFrameworkArduino.a(delay.c.o)
-                0x000012a0                delay
+                0x00000fb8      0x2f0 .pio\build\teensy41\libFrameworkArduino.a(clockspeed.c.o)
+                0x00000fb8                set_arm_clock
+ .text.delay    0x000012a8       0xa8 .pio\build\teensy41\libFrameworkArduino.a(delay.c.o)
+                0x000012a8                delay
  .text.digitalWrite
-                0x00001348       0x54 .pio\build\teensy41\libFrameworkArduino.a(digital.c.o)
-                0x00001348                digitalWrite
- .text.pinMode  0x0000139c       0x70 .pio\build\teensy41\libFrameworkArduino.a(digital.c.o)
-                0x0000139c                pinMode
+                0x00001350       0x54 .pio\build\teensy41\libFrameworkArduino.a(digital.c.o)
+                0x00001350                digitalWrite
+ .text.pinMode  0x000013a4       0x70 .pio\build\teensy41\libFrameworkArduino.a(digital.c.o)
+                0x000013a4                pinMode
  .text.startup.main
-                0x0000140c       0x10 .pio\build\teensy41\libFrameworkArduino.a(main.cpp.o)
-                0x0000140c                main
- .text          0x0000141c      0x134 .pio\build\teensy41\libFrameworkArduino.a(memcpy-armv7m.S.o)
-                0x0000141c                memcpy
- .text.ultoa    0x00001550       0x64 .pio\build\teensy41\libFrameworkArduino.a(nonstd.c.o)
-                0x00001550                ultoa
+                0x00001414       0x10 .pio\build\teensy41\libFrameworkArduino.a(main.cpp.o)
+                0x00001414                main
+ .text          0x00001424      0x134 .pio\build\teensy41\libFrameworkArduino.a(memcpy-armv7m.S.o)
+                0x00001424                memcpy
+ .text.ultoa    0x00001558       0x64 .pio\build\teensy41\libFrameworkArduino.a(nonstd.c.o)
+                0x00001558                ultoa
  .text.unused_interrupt_vector
-                0x000015b4      0x18c .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
-                0x000015b4                unused_interrupt_vector
- .text._sbrk    0x00001740       0x34 .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
-                0x00001740                _sbrk
- .text._read    0x00001774        0x4 .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
-                0x00001774                _read
- .text._close   0x00001778        0x8 .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
-                0x00001778                _close
- .text._fstat   0x00001780        0xc .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
-                0x00001780                _fstat
- .text._isatty  0x0000178c        0x4 .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
-                0x0000178c                _isatty
- .text._lseek   0x00001790        0x8 .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
-                0x00001790                _lseek
+                0x000015bc      0x18c .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
+                0x000015bc                unused_interrupt_vector
+ .text._sbrk    0x00001748       0x34 .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
+                0x00001748                _sbrk
+ .text._read    0x0000177c        0x4 .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
+                0x0000177c                _read
+ .text._close   0x00001780        0x8 .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
+                0x00001780                _close
+ .text._fstat   0x00001788        0xc .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
+                0x00001788                _fstat
+ .text._isatty  0x00001794        0x4 .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
+                0x00001794                _isatty
+ .text._lseek   0x00001798        0x8 .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
+                0x00001798                _lseek
  .text.unlikely.abort
-                0x00001798        0x4 .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
-                0x00001798                abort
+                0x000017a0        0x4 .pio\build\teensy41\libFrameworkArduino.a(startup.c.o)
+                0x000017a0                abort
  .text.Panic_Temp_isr
-                0x0000179c        0x4 .pio\build\teensy41\libFrameworkArduino.a(tempmon.c.o)
-                0x0000179c                Panic_Temp_isr
+                0x000017a4        0x4 .pio\build\teensy41\libFrameworkArduino.a(tempmon.c.o)
+                0x000017a4                Panic_Temp_isr
  .text.tempmonGetTemp
-                0x000017a0       0x60 .pio\build\teensy41\libFrameworkArduino.a(tempmon.c.o)
-                0x000017a0                tempmonGetTemp
+                0x000017a8       0x60 .pio\build\teensy41\libFrameworkArduino.a(tempmon.c.o)
+                0x000017a8                tempmonGetTemp
  .text.schedule_transfer
-                0x00001800       0x88 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
+                0x00001808       0x88 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
  .text.run_callbacks
-                0x00001888       0x38 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
+                0x00001890       0x38 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
  .text.endpoint0_transmit.constprop.0
-                0x000018c0       0x98 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
+                0x000018c8       0x98 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
  .text.usb_stop_sof_interrupts
-                0x00001958       0x2c .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
-                0x00001958                usb_stop_sof_interrupts
- .text.usb_isr  0x00001984      0x638 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
-                0x00001984                usb_isr
+                0x00001960       0x2c .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
+                0x00001960                usb_stop_sof_interrupts
+ .text.usb_isr  0x0000198c      0x638 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
+                0x0000198c                usb_isr
  .text.usb_config_rx
-                0x00001fbc       0x64 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
-                0x00001fbc                usb_config_rx
+                0x00001fc4       0x64 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
+                0x00001fc4                usb_config_rx
  .text.usb_config_tx
-                0x00002020       0x64 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
-                0x00002020                usb_config_tx
+                0x00002028       0x64 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
+                0x00002028                usb_config_tx
  .text.usb_prepare_transfer
-                0x00002084       0x30 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
-                0x00002084                usb_prepare_transfer
+                0x0000208c       0x30 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
+                0x0000208c                usb_prepare_transfer
  .text.usb_transmit
-                0x000020b4       0x28 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
-                0x000020b4                usb_transmit
+                0x000020bc       0x28 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
+                0x000020bc                usb_transmit
  .text.usb_receive
-                0x000020dc       0x1c .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
-                0x000020dc                usb_receive
+                0x000020e4       0x1c .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
+                0x000020e4                usb_receive
  .text.usb_transfer_status
-                0x000020f8        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
-                0x000020f8                usb_transfer_status
+                0x00002100        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb.c.o)
+                0x00002100                usb_transfer_status
  .text.usb_init_serialnumber
-                0x000020fc       0x58 .pio\build\teensy41\libFrameworkArduino.a(usb_desc.c.o)
-                0x000020fc                usb_init_serialnumber
+                0x00002104       0x58 .pio\build\teensy41\libFrameworkArduino.a(usb_desc.c.o)
+                0x00002104                usb_init_serialnumber
  .text._ZN16usb_serial_class5clearEv
-                0x00002154        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x00002154                usb_serial_class::clear()
- .text._ZN16usb_serial_class4peekEv
-                0x00002158        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x00002158                usb_serial_class::peek()
- .text._ZN16usb_serial_class4readEv
                 0x0000215c        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x0000215c                usb_serial_class::read()
- .text._ZN16usb_serial_class9availableEv
+                0x0000215c                usb_serial_class::clear()
+ .text._ZN16usb_serial_class4peekEv
                 0x00002160        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x00002160                usb_serial_class::available()
- .text._ZN16usb_serial_class5flushEv
+                0x00002160                usb_serial_class::peek()
+ .text._ZN16usb_serial_class4readEv
                 0x00002164        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x00002164                usb_serial_class::flush()
- .text._ZN16usb_serial_class17availableForWriteEv
+                0x00002164                usb_serial_class::read()
+ .text._ZN16usb_serial_class9availableEv
                 0x00002168        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x00002168                usb_serial_class::availableForWrite()
+                0x00002168                usb_serial_class::available()
+ .text._ZN16usb_serial_class5flushEv
+                0x0000216c        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
+                0x0000216c                usb_serial_class::flush()
+ .text._ZN16usb_serial_class17availableForWriteEv
+                0x00002170        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
+                0x00002170                usb_serial_class::availableForWrite()
  .text._ZN16usb_serial_class5writeEh
-                0x0000216c        0x8 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x0000216c                usb_serial_class::write(unsigned char)
+                0x00002174        0x8 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
+                0x00002174                usb_serial_class::write(unsigned char)
  .text._ZN17usb_serial2_class5clearEv
-                0x00002174        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x00002174                usb_serial2_class::clear()
- .text._ZN17usb_serial2_class4peekEv
-                0x00002178        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x00002178                usb_serial2_class::peek()
- .text._ZN17usb_serial2_class4readEv
                 0x0000217c        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x0000217c                usb_serial2_class::read()
- .text._ZN17usb_serial2_class9availableEv
+                0x0000217c                usb_serial2_class::clear()
+ .text._ZN17usb_serial2_class4peekEv
                 0x00002180        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x00002180                usb_serial2_class::available()
- .text._ZN17usb_serial2_class5flushEv
+                0x00002180                usb_serial2_class::peek()
+ .text._ZN17usb_serial2_class4readEv
                 0x00002184        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x00002184                usb_serial2_class::flush()
- .text._ZN17usb_serial2_class17availableForWriteEv
+                0x00002184                usb_serial2_class::read()
+ .text._ZN17usb_serial2_class9availableEv
                 0x00002188        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x00002188                usb_serial2_class::availableForWrite()
+                0x00002188                usb_serial2_class::available()
+ .text._ZN17usb_serial2_class5flushEv
+                0x0000218c        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
+                0x0000218c                usb_serial2_class::flush()
+ .text._ZN17usb_serial2_class17availableForWriteEv
+                0x00002190        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
+                0x00002190                usb_serial2_class::availableForWrite()
  .text._ZN17usb_serial2_class5writeEPKhj
-                0x0000218c        0x8 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x0000218c                usb_serial2_class::write(unsigned char const*, unsigned int)
- .text._ZN17usb_serial2_class5writeEh
                 0x00002194        0x8 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
-                0x00002194                usb_serial2_class::write(unsigned char)
+                0x00002194                usb_serial2_class::write(unsigned char const*, unsigned int)
+ .text._ZN17usb_serial2_class5writeEh
+                0x0000219c        0x8 .pio\build\teensy41\libFrameworkArduino.a(usb_inst.cpp.o)
+                0x0000219c                usb_serial2_class::write(unsigned char)
  .text.rx_queue_transfer
-                0x0000219c       0x60 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x000021a4       0x60 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
  .text.rx_event
-                0x000021fc       0xb4 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x00002204       0xb4 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
  .text.usb_serial_flush_callback
-                0x000022b0       0x90 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x000022b8       0x90 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
  .text.usb_serial_write.part.0
-                0x00002340      0x1b8 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x00002348      0x1b8 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
  .text.usb_serial_reset
-                0x000024f8        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
-                0x000024f8                usb_serial_reset
+                0x00002500        0x4 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x00002500                usb_serial_reset
  .text.usb_serial_configure
-                0x000024fc      0x100 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
-                0x000024fc                usb_serial_configure
+                0x00002504      0x100 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x00002504                usb_serial_configure
  .text.usb_serial_read
-                0x000025fc       0xe0 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
-                0x000025fc                usb_serial_read
+                0x00002604       0xe0 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x00002604                usb_serial_read
  .text.usb_serial_peekchar
-                0x000026dc       0x44 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
-                0x000026dc                usb_serial_peekchar
+                0x000026e4       0x44 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x000026e4                usb_serial_peekchar
  .text.usb_serial_available
-                0x00002720       0x18 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
-                0x00002720                usb_serial_available
+                0x00002728       0x18 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x00002728                usb_serial_available
  .text.usb_serial_flush_input
-                0x00002738       0x70 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
-                0x00002738                usb_serial_flush_input
+                0x00002740       0x70 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x00002740                usb_serial_flush_input
  .text.usb_serial_getchar
-                0x000027a8       0x20 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
-                0x000027a8                usb_serial_getchar
+                0x000027b0       0x20 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x000027b0                usb_serial_getchar
  .text.usb_serial_putchar
-                0x000027c8       0x2c .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
-                0x000027c8                usb_serial_putchar
+                0x000027d0       0x2c .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x000027d0                usb_serial_putchar
  .text.usb_serial_write
-                0x000027f4       0x18 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
-                0x000027f4                usb_serial_write
+                0x000027fc       0x18 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x000027fc                usb_serial_write
  .text.usb_serial_write_buffer_free
-                0x0000280c       0x50 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
-                0x0000280c                usb_serial_write_buffer_free
+                0x00002814       0x50 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x00002814                usb_serial_write_buffer_free
  .text.usb_serial_flush_output
-                0x0000285c       0x94 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
-                0x0000285c                usb_serial_flush_output
+                0x00002864       0x94 .pio\build\teensy41\libFrameworkArduino.a(usb_serial.c.o)
+                0x00002864                usb_serial_flush_output
  .text.rx_queue_transfer
-                0x000028f0       0x60 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x000028f8       0x60 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
  .text.rx_event
-                0x00002950       0xb4 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002958       0xb4 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
  .text.usb_serial2_flush_callback
-                0x00002a04       0x90 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002a0c       0x90 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
  .text.usb_serial2_write.part.0
-                0x00002a94      0x190 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002a9c      0x190 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
  .text.usb_serial2_configure
-                0x00002c24      0x100 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
-                0x00002c24                usb_serial2_configure
+                0x00002c2c      0x100 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002c2c                usb_serial2_configure
  .text.usb_serial2_read
-                0x00002d24       0xe0 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
-                0x00002d24                usb_serial2_read
+                0x00002d2c       0xe0 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002d2c                usb_serial2_read
  .text.usb_serial2_peekchar
-                0x00002e04       0x44 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
-                0x00002e04                usb_serial2_peekchar
+                0x00002e0c       0x44 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002e0c                usb_serial2_peekchar
  .text.usb_serial2_available
-                0x00002e48       0x18 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
-                0x00002e48                usb_serial2_available
+                0x00002e50       0x18 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002e50                usb_serial2_available
  .text.usb_serial2_flush_input
-                0x00002e60       0x70 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
-                0x00002e60                usb_serial2_flush_input
+                0x00002e68       0x70 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002e68                usb_serial2_flush_input
  .text.usb_serial2_getchar
-                0x00002ed0       0x20 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
-                0x00002ed0                usb_serial2_getchar
+                0x00002ed8       0x20 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002ed8                usb_serial2_getchar
  .text.usb_serial2_putchar
-                0x00002ef0       0x2c .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
-                0x00002ef0                usb_serial2_putchar
+                0x00002ef8       0x2c .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002ef8                usb_serial2_putchar
  .text.usb_serial2_write
-                0x00002f1c       0x18 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
-                0x00002f1c                usb_serial2_write
+                0x00002f24       0x18 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002f24                usb_serial2_write
  .text.usb_serial2_write_buffer_free
-                0x00002f34       0x4c .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
-                0x00002f34                usb_serial2_write_buffer_free
+                0x00002f3c       0x4c .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002f3c                usb_serial2_write_buffer_free
  .text.usb_serial2_flush_output
-                0x00002f80       0x90 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
-                0x00002f80                usb_serial2_flush_output
- .text.yield    0x00003010       0xec .pio\build\teensy41\libFrameworkArduino.a(yield.cpp.o)
-                0x00003010                yield
+                0x00002f88       0x90 .pio\build\teensy41\libFrameworkArduino.a(usb_serial2.c.o)
+                0x00002f88                usb_serial2_flush_output
+ .text.yield    0x00003018       0xec .pio\build\teensy41\libFrameworkArduino.a(yield.cpp.o)
+                0x00003018                yield
  .text._ZN14EventResponder16runFromInterruptEv
-                0x000030fc       0x44 .pio\build\teensy41\libFrameworkArduino.a(EventResponder.cpp.o)
-                0x000030fc                EventResponder::runFromInterrupt()
+                0x00003104       0x44 .pio\build\teensy41\libFrameworkArduino.a(EventResponder.cpp.o)
+                0x00003104                EventResponder::runFromInterrupt()
  .text.pendablesrvreq_isr
-                0x00003140        0x4 .pio\build\teensy41\libFrameworkArduino.a(EventResponder.cpp.o)
-                0x00003140                pendablesrvreq_isr
+                0x00003148        0x4 .pio\build\teensy41\libFrameworkArduino.a(EventResponder.cpp.o)
+                0x00003148                pendablesrvreq_isr
  .text.systick_isr
-                0x00003144       0x20 .pio\build\teensy41\libFrameworkArduino.a(EventResponder.cpp.o)
-                0x00003144                systick_isr
+                0x0000314c       0x20 .pio\build\teensy41\libFrameworkArduino.a(EventResponder.cpp.o)
+                0x0000314c                systick_isr
  .text.flexpwm_init
-                0x00003164       0x7c .pio\build\teensy41\libFrameworkArduino.a(pwm.c.o)
-                0x00003164                flexpwm_init
+                0x0000316c       0x7c .pio\build\teensy41\libFrameworkArduino.a(pwm.c.o)
+                0x0000316c                flexpwm_init
  .text.pwm_init
-                0x000031e0       0xf4 .pio\build\teensy41\libFrameworkArduino.a(pwm.c.o)
-                0x000031e0                pwm_init
- .text.rtc_get  0x000032d4       0x24 .pio\build\teensy41\libFrameworkArduino.a(rtc.c.o)
-                0x000032d4                rtc_get
+                0x000031e8       0xf4 .pio\build\teensy41\libFrameworkArduino.a(pwm.c.o)
+                0x000031e8                pwm_init
+ .text.rtc_get  0x000032dc       0x24 .pio\build\teensy41\libFrameworkArduino.a(rtc.c.o)
+                0x000032dc                rtc_get
  .text.sm_align_pool
-                0x000032f8       0x4c .pio\build\teensy41\libFrameworkArduino.a(sm_pool.c.o)
-                0x000032f8                sm_align_pool
+                0x00003300       0x4c .pio\build\teensy41\libFrameworkArduino.a(sm_pool.c.o)
+                0x00003300                sm_align_pool
  .text.sm_set_pool
-                0x00003344       0x84 .pio\build\teensy41\libFrameworkArduino.a(sm_pool.c.o)
-                0x00003344                sm_set_pool
+                0x0000334c       0x84 .pio\build\teensy41\libFrameworkArduino.a(sm_pool.c.o)
+                0x0000334c                sm_set_pool
  .text.__aeabi_atexit
-                0x000033c8        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libstdc++.a(atexit_arm.o)
-                0x000033c8                __aeabi_atexit
- .text.itoa     0x000033d4       0x2c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-itoa.o)
-                0x000033d4                itoa
- .text.free     0x00003400       0x10 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-malloc.o)
-                0x00003400                free
+                0x000033d0        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libstdc++.a(atexit_arm.o)
+                0x000033d0                __aeabi_atexit
+ .text.itoa     0x000033dc       0x2c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-itoa.o)
+                0x000033dc                itoa
+ .text.free     0x00003408       0x10 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-malloc.o)
+                0x00003408                free
  .text._malloc_r
-                0x00003410      0x560 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-mallocr.o)
-                0x00003410                _malloc_r
+                0x00003418      0x560 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-mallocr.o)
+                0x00003418                _malloc_r
  .text.__malloc_lock
-                0x00003970        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-mlock.o)
-                0x00003970                __malloc_lock
+                0x00003978        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-mlock.o)
+                0x00003978                __malloc_lock
  .text.__malloc_unlock
-                0x0000397c        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-mlock.o)
-                0x0000397c                __malloc_unlock
- .text.realloc  0x00003988       0x18 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-realloc.o)
-                0x00003988                realloc
+                0x00003984        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-mlock.o)
+                0x00003984                __malloc_unlock
+ .text.realloc  0x00003990       0x18 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-realloc.o)
+                0x00003990                realloc
  .text._realloc_r
-                0x000039a0      0x3d8 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-reallocr.o)
-                0x000039a0                _realloc_r
- .text.__utoa   0x00003d78       0x9c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-utoa.o)
-                0x00003d78                __utoa
+                0x000039a8      0x3d8 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-reallocr.o)
+                0x000039a8                _realloc_r
+ .text.__utoa   0x00003d80       0x9c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-utoa.o)
+                0x00003d80                __utoa
  .text.__cxa_atexit
-                0x00003e14        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-cxa_atexit.o)
-                0x00003e14                __cxa_atexit
+                0x00003e1c        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-cxa_atexit.o)
+                0x00003e1c                __cxa_atexit
  .text.stdio_exit_handler
-                0x00003e20       0x18 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-findfp.o)
+                0x00003e28       0x18 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-findfp.o)
  .text.cleanup_stdio
-                0x00003e38       0x40 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-findfp.o)
+                0x00003e40       0x40 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-findfp.o)
  .text.global_stdio_init.part.0
-                0x00003e78       0xd4 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-findfp.o)
- .text.__sinit  0x00003f4c       0x3c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-findfp.o)
-                0x00003f4c                __sinit
+                0x00003e80       0xd4 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-findfp.o)
+ .text.__sinit  0x00003f54       0x3c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-findfp.o)
+                0x00003f54                __sinit
  .text.__sfp_lock_acquire
-                0x00003f88        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-findfp.o)
-                0x00003f88                __sfp_lock_acquire
+                0x00003f90        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-findfp.o)
+                0x00003f90                __sfp_lock_acquire
  .text.__sfp_lock_release
-                0x00003f94        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-findfp.o)
-                0x00003f94                __sfp_lock_release
+                0x00003f9c        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-findfp.o)
+                0x00003f9c                __sfp_lock_release
  .text._fwalk_sglue
-                0x00003fa0       0x48 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-fwalk.o)
-                0x00003fa0                _fwalk_sglue
- .text.__sread  0x00003fe8       0x24 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-stdio.o)
-                0x00003fe8                __sread
+                0x00003fa8       0x48 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-fwalk.o)
+                0x00003fa8                _fwalk_sglue
+ .text.__sread  0x00003ff0       0x24 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-stdio.o)
+                0x00003ff0                __sread
  .text.__swrite
-                0x0000400c       0x40 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-stdio.o)
-                0x0000400c                __swrite
- .text.__sseek  0x0000404c       0x20 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-stdio.o)
-                0x0000404c                __sseek
+                0x00004014       0x40 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-stdio.o)
+                0x00004014                __swrite
+ .text.__sseek  0x00004054       0x20 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-stdio.o)
+                0x00004054                __sseek
  .text.__sclose
-                0x0000406c        0x8 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-stdio.o)
-                0x0000406c                __sclose
+                0x00004074        0x8 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-stdio.o)
+                0x00004074                __sclose
  .text._vdprintf_r
-                0x00004074       0x4c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-vdprintf.o)
-                0x00004074                _vdprintf_r
+                0x0000407c       0x4c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-vdprintf.o)
+                0x0000407c                _vdprintf_r
  .text.vdprintf
-                0x000040c0       0x1c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-vdprintf.o)
-                0x000040c0                vdprintf
+                0x000040c8       0x1c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-vdprintf.o)
+                0x000040c8                vdprintf
  .text.vsnprintf
-                0x000040dc       0x70 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-vsnprintf.o)
-                0x000040dc                vsnprintf
+                0x000040e4       0x70 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-vsnprintf.o)
+                0x000040e4                vsnprintf
  .text._vasnprintf_r
-                0x0000414c       0x64 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-vasnprintf.o)
-                0x0000414c                _vasnprintf_r
- .text.memmove  0x000041b0       0xf8 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-memmove.o)
-                0x000041b0                memmove
- .text.memset   0x000042a8       0xa4 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-memset.o)
-                0x000042a8                memset
- .text.strncpy  0x0000434c       0x64 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-strncpy.o)
-                0x0000434c                strncpy
+                0x00004154       0x64 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-vasnprintf.o)
+                0x00004154                _vasnprintf_r
+ .text.memmove  0x000041b8       0xf8 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-memmove.o)
+                0x000041b8                memmove
+ .text.memset   0x000042b0       0xa4 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-memset.o)
+                0x000042b0                memset
+ .text.strncpy  0x00004354       0x64 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-strncpy.o)
+                0x00004354                strncpy
  .text.__locale_mb_cur_max
-                0x000043b0        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-locale.o)
-                0x000043b0                __locale_mb_cur_max
+                0x000043b8        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-locale.o)
+                0x000043b8                __locale_mb_cur_max
  .text._close_r
-                0x000043bc       0x24 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-closer.o)
-                0x000043bc                _close_r
+                0x000043c4       0x24 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-closer.o)
+                0x000043c4                _close_r
  .text._lseek_r
-                0x000043e0       0x2c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-lseekr.o)
-                0x000043e0                _lseek_r
- .text._read_r  0x0000440c       0x2c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-readr.o)
-                0x0000440c                _read_r
- .text._sbrk_r  0x00004438       0x24 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-sbrkr.o)
-                0x00004438                _sbrk_r
+                0x000043e8       0x2c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-lseekr.o)
+                0x000043e8                _lseek_r
+ .text._read_r  0x00004414       0x2c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-readr.o)
+                0x00004414                _read_r
+ .text._sbrk_r  0x00004440       0x24 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-sbrkr.o)
+                0x00004440                _sbrk_r
  .text._write_r
-                0x0000445c       0x2c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-writer.o)
-                0x0000445c                _write_r
- .text.__errno  0x00004488        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-errno.o)
-                0x00004488                __errno
+                0x00004464       0x2c c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-writer.o)
+                0x00004464                _write_r
+ .text.__errno  0x00004490        0xc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-errno.o)
+                0x00004490                __errno
  .text.__libc_init_array
-                0x00004494       0x48 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-init.o)
-                0x00004494                __libc_init_array
+                0x0000449c       0x48 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-init.o)
+                0x0000449c                __libc_init_array
  .text.__retarget_lock_init_recursive
-                0x000044dc        0x4 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-lock.o)
-                0x000044dc                __retarget_lock_init_recursive
- .text.__retarget_lock_close_recursive
-                0x000044e0        0x4 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-lock.o)
-                0x000044e0                __retarget_lock_close_recursive
- .text.__retarget_lock_acquire_recursive
                 0x000044e4        0x4 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-lock.o)
-                0x000044e4                __retarget_lock_acquire_recursive
- .text.__retarget_lock_release_recursive
+                0x000044e4                __retarget_lock_init_recursive
+ .text.__retarget_lock_close_recursive
                 0x000044e8        0x4 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-lock.o)
-                0x000044e8                __retarget_lock_release_recursive
- .text.strcpy   0x000044ec       0xbc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-strcpy.o)
-                0x000044ec                strcpy
- *fill*         0x000045a8       0x18 
+                0x000044e8                __retarget_lock_close_recursive
+ .text.__retarget_lock_acquire_recursive
+                0x000044ec        0x4 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-lock.o)
+                0x000044ec                __retarget_lock_acquire_recursive
+ .text.__retarget_lock_release_recursive
+                0x000044f0        0x4 c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-lock.o)
+                0x000044f0                __retarget_lock_release_recursive
+ .text.strcpy   0x000044f4       0xbc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-strcpy.o)
+                0x000044f4                strcpy
+ *fill*         0x000045b0       0x10 
  .text          0x000045c0       0xdc c:/users/james/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/../lib/gcc/arm-none-eabi/11.3.1/thumb/v7e-m+dp/hard\libc.a(libc_a-strlen.o)
                 0x000045c0                strlen
  .text.__register_exitproc

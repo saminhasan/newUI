@@ -201,13 +201,13 @@ class App(ctk.CTk):
             self.portSelect.configure(values=[])
 
     def fileHandler(self, event_name="UPLOAD") -> None:  # have a app handler
-        # file_path = filedialog.askopenfilename(title="Select File", filetypes=[("All Files", "*.*")])
-        # if file_path:  # call checking function here or maybe even plot the file
-        #     self.requestHandler(event_name, filePath=file_path)
-        # else:
-        #     messagebox.showwarning("No File Selected", "Please select a file to upload.")
-        #     self.fileHandler()
-        self.requestHandler(event_name, filePath="file_path_placeholder")
+        file_path = filedialog.askopenfilename(title="Select File", filetypes=[("All Files", "*.*")])
+        if file_path:  # call checking function here or maybe even plot the file
+            self.requestHandler(event_name, filePath=file_path)
+        else:
+            messagebox.showwarning("No File Selected", "Please select a file to upload.")
+            self.fileHandler()
+        # self.requestHandler(event_name, filePath="file_path_placeholder")
 
     def requestHandler(self, event_name: str, **kwargs: dict) -> None:
         eventDict = {"event": event_name, "sequence": self.sequence}
