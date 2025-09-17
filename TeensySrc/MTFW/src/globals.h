@@ -1,28 +1,55 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
-#include <stddef.h>
-#include <stdint.h>
+#include "constants.h"
+#include "LPF.h"
+#include <FastCRC.h>
 #include <Arduino.h>
-#define Debug SerialUSB1
-#define NODE_ID_MASTER 0x00
-#define NODE_ID_PC 0xFF
-#define NODE_ID NODE_ID_MASTER
-static constexpr size_t SEND_BUFFER_SIZE     = 65536; // 64 KB = at 60 MB/s / 1ms
-static constexpr size_t PACKET_OVERHEAD      = 16;
-// static constexpr size_t MAX_PACKET_SIZE      = size_t(8192*1000 + PACKET_OVERHEAD);//8388608               // 4 MB for the packet buffer
-static constexpr size_t MAX_PACKET_SIZE      = size_t(8388608);//               // 4 MB for the packet buffer
-static constexpr size_t maxArrayLength       = size_t((MAX_PACKET_SIZE - PACKET_OVERHEAD - 1)/ (6 * sizeof(float)));
+#include <USBHost_t36.h>
 
-EXTMEM uint8_t ringBufferArray[MAX_PACKET_SIZE];
-typedef union {
-    float data[maxArrayLength][6];            // Access as 2D float array
-    uint8_t bytes[maxArrayLength * 6 * sizeof(float)]; // Access raw bytes
-} DataBuffer;
 EXTMEM DataBuffer dataBuffer;
-uint32_t arrayLength = 0;
-DMAMEM uint8_t sendBuffer[SEND_BUFFER_SIZE];
-inline const float* getRow(uint32_t i) {
+uint8_t sendBuffer[SEND_BUFFER_SIZE];
+DMAMEM uint8_t recvBuffer[RECV_BUFFER_SIZE];
+DMAMEM uint8_t recvBufferA[RECV_BUFFER_SIZE];
+DMAMEM uint8_t recvBufferB[RECV_BUFFER_SIZE];
+DMAMEM uint8_t recvBufferC[RECV_BUFFER_SIZE];
+
+//
+//
+USBHost myusb;
+USBHub hub1(myusb);
+USBHub hub2(myusb);
+USBHub hub3(myusb);
+
+USBSerial_BigBuffer teensyX(myusb, 1);
+USBSerial_BigBuffer teensyY(myusb, 2);
+USBSerial_BigBuffer teensyZ(myusb, 3);
+//
+//
+
+size_t readIndex = 0;
+size_t arrayLength = 0;
+uint8_t MsgID = 0;
+uint8_t response = 0;
+uint8_t request = 0;
+
+float MoveData[6];
+
+bool doPlay = false;
+bool hasData = false;
+
+
+const uint32_t frMax = 100;
+volatile uint32_t feedRate = 0;
+volatile uint32_t frRemainder = 0;
+
+volatile bool irqSend = false;
+
+inline const float* getRow(uint32_t i) 
+{
     if (arrayLength == 0) return nullptr;
     return dataBuffer.data[i % arrayLength];
 }
+
+LPF<100> slider(0.1, 1e-3);
+
 #endif // GLOBALS_H

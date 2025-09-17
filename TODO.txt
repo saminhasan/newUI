@@ -1,5 +1,0 @@
-#1 use log for only user inputs and event successes
-#2 use log for errors and exceptions
-#3 use tags for categorizing logs
-#4 make super nice logging in binary and finally to excel with different pages for events+errors and different pages for actual data and
-last state of mind - use logviewer to show time stamps of button presses so #1

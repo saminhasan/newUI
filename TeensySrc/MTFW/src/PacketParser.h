@@ -1,163 +1,268 @@
 #ifndef PACKET_PARSER_H
 #define PACKET_PARSER_H
 
-#include <globals.h>
-#include "RingBuffer.h"
+#include <stdint.h>
+#include <cstring>
 #include <FastCRC.h>
+#include "constants.h"
+#include "globals.h"
+#include "RingBuffer.h"
 #include "messages.h"
 
-void printArray(float arr[][6], size_t length)
-{   if (length < 1) return;
-    for (size_t i = length - 1; i < length; i++)
-    {
-        Debug.printf("%zu : %f %f %f %f %f %f\n", i + 1, arr[i][0], arr[i][1], arr[i][2], arr[i][3], arr[i][4], arr[i][5]);
-    }
-}
-enum class ParseState
-{
+enum class ParseState {
     AWAIT_START,
     AWAIT_HEADER,
-    AWAIT_PAYLOAD,
-    PACKET_FOUND,
-    PACKET_HANDLING,
-    PACKET_ERROR
+    AWAIT_PAYLOAD_CRC,
+    PACKET_COMPLETE
 };
-static const char *stateNames[] = {
-    "AWAIT_START", "AWAIT_HEADER", "AWAIT_PAYLOAD",
-    "PACKET_FOUND", "PACKET_HANDLING", "PACKET_ERROR"};
-// Packet information structure
-struct PacketInfo
-{
-    union
-    {
-        struct __attribute__((packed))
-        {
-            uint32_t packetLength;
-            uint32_t sequenceNumber;
-            uint8_t fromID; // from
-            uint8_t toID; // to
-            uint32_t crc;
-        };
-        uint8_t headerBytes[14];
-    };
 
-    uint32_t payloadSize;
+struct PacketInfo {
+    uint32_t length;
+    uint32_t sequence;
+    size_t   payloadSize;
+    uint8_t  from;
+    uint8_t  to;
+    uint8_t  msgID;
+    bool     isValid;
+
+    PacketInfo():
+                length(0),
+                sequence(0),
+                payloadSize(0),
+                from(0), 
+                to(0), 
+                msgID(0),
+                isValid(false)
+                {}
+};
+struct PacketParserState {
+    // 4-byte fields first
+    ParseState state;        // enum class → 4 bytes
+    FastCRC32  crc32;        // class, 4-byte aligned
+    uint32_t   runningCRC;
+    uint32_t   packetLength;
+    uint32_t   sequence;
+    uint32_t   crcExpected;
+    size_t     payloadSize;       // 4 bytes
+    size_t     payloadBytesRead;  // 4 bytes
+    elapsedMicros elapsedTime;    // wrapper around uint32_t
+    PacketInfo parsedPacket;        // already well-packed
+
+    // pointers (4 bytes each)
+    RingBuffer* ringBuffer;
+    void (*packetCallback)(const PacketInfo&);
+
+    // small scalars grouped;
+    uint8_t fromID;
+    uint8_t toID;
     uint8_t msgID;
-    uint8_t isValid;
+    bool    crcInitialized;
+
+    // big buffer last
+    uint8_t tempBuffer[TEMP_BUFFER_SIZE];
+
+    // Constructor: order matches declaration order
+    PacketParserState(RingBuffer& rb)
+        : state(ParseState::AWAIT_START),
+          crc32(),
+          runningCRC(0),
+          packetLength(0),
+          sequence(0),
+          crcExpected(0),
+          payloadSize(0),
+          payloadBytesRead(0),
+          elapsedTime(0),
+          parsedPacket(),
+          ringBuffer(&rb),
+          packetCallback(nullptr),
+          fromID(0),
+          toID(0),
+          msgID(0),
+          crcInitialized(false)
+    {}
 };
-template <size_t bufferSize>// Forward declaration
-class Parser;
-template <size_t bufferSize> // Callback function type - takes a reference to the parser
-using PacketCallback = void (*)(Parser<bufferSize> &parser);
 
-template <size_t bufferSize>
-class Parser
-{
-public:
-    uint32_t crc;
-    FastCRC32 CRC32;
-    PacketInfo pktInfo;
-    RingBuffer<uint8_t, bufferSize> packetBuffer;
-    ParseState parseState = ParseState::AWAIT_START;
-    ParseState lastState = ParseState::AWAIT_START;
-    PacketCallback<bufferSize> callback;
-    uint32_t stateStartTime = 0;
-    Parser(uint8_t *externalBuffer, PacketCallback<bufferSize> cb = nullptr)
-        : packetBuffer(externalBuffer), callback(cb) {};
+// ---- CRC helpers ----
+inline void initCRC(PacketParserState& s) {
+    s.runningCRC = 0;
+    s.crcInitialized = false;
+}
 
-    void debugInfo()
-    {
-        if (lastState != parseState)
-        {
-            if (lastState != ParseState::AWAIT_START || stateStartTime != 0)
-            {
-                uint32_t timeSpent = micros() - stateStartTime;
-                Debug.printf("%s took %lu μs\n", stateNames[static_cast<int>(lastState)], timeSpent);
-            }
-            lastState = parseState;
-            stateStartTime = micros();
-        }
+inline void updateCRC(PacketParserState& s, const uint8_t* data, size_t len) {
+    if (!s.crcInitialized) {
+        s.runningCRC = s.crc32.crc32(data, len);
+        s.crcInitialized = true;
+    } else {
+        s.runningCRC = s.crc32.crc32_upd(data, len);
     }
-    void parse()
-    {
-        // debugInfo();
-        switch (parseState)
-        {
-        case ParseState::AWAIT_START:
-            if (packetBuffer.popUntil(START_MARKER))
-            {
-                parseState = ParseState::AWAIT_HEADER;
-            }
-            break;
+}
 
-        case ParseState::AWAIT_HEADER:
-            if (packetBuffer.size() >= 14)
-            {
-                packetBuffer.readBytes(pktInfo.headerBytes, 14); // len (4) + seq (4) + fromID (1) + toID (1) + crc (4)
-                crc = CRC32.crc32(pktInfo.headerBytes, 10); // read the first 10 bytes for CRC, from len to toID
-                pktInfo.payloadSize = pktInfo.packetLength - PACKET_OVERHEAD;
-                if (pktInfo.payloadSize > (MAX_PACKET_SIZE - PACKET_OVERHEAD) || pktInfo.payloadSize < 0)
-                {
-                    Debug.printf("Invalid packet size: %lu\n", pktInfo.payloadSize);
-                    parseState = ParseState::PACKET_ERROR;
-                }
-                else
-                {
-                    parseState = ParseState::AWAIT_PAYLOAD;
-                }
-            }
-            break;
+inline void updateCRC(PacketParserState& s, uint8_t b) {
+    updateCRC(s, &b, 1);
+}
 
-        case ParseState::AWAIT_PAYLOAD:
-            if (packetBuffer.size() >= (pktInfo.payloadSize + 1))
-                parseState = ParseState::PACKET_FOUND;
-            break;
+// ---- Payload handlers ----
+typedef void (*MsgHandler)(PacketParserState&, const uint8_t*, size_t);
 
-        case ParseState::PACKET_FOUND:
-        {
-            for (size_t i = 0; i < pktInfo.payloadSize; i++)
-            {   uint8_t b = packetBuffer[i];
-                crc = CRC32.crc32_upd(&b, 1);
-            }
-            pktInfo.isValid = (crc == pktInfo.crc) && (packetBuffer[pktInfo.payloadSize] == END_MARKER);
-            if (pktInfo.isValid)
-            {
-                packetBuffer.pop(pktInfo.msgID);
-                parseState = ParseState::PACKET_HANDLING;
-            }
-            else
-            {
-                if (!(packetBuffer[pktInfo.payloadSize] == END_MARKER))
-                    Debug.printf(" Invalid End marker  (expected: 0x%02X, found: 0x%02X)\n", END_MARKER, packetBuffer[pktInfo.payloadSize]);
-                else if (!(crc == pktInfo.crc))
-                    Debug.printf(" Invalid CRC  (expected: 0x%08X, computed: 0x%08X)\n", pktInfo.crc, crc);
-                else
-                    Debug.printf("Unknown error\n");
-                Debug.printf("Packet Info: len=%u, size=%u, seq=%u, from=%u, to=%u, msgID=0x%02X\n",
-                    pktInfo.packetLength, pktInfo.payloadSize, pktInfo.sequenceNumber, pktInfo.fromID, pktInfo.toID, pktInfo.msgID);
-                parseState = ParseState::PACKET_ERROR;
-            }
-            break;
-        }
-        case ParseState::PACKET_HANDLING:
-        {
-            if (callback)
-                callback(*this);
-            else
-                Debug.printf("No callback set for packet handling\n");
-            parseState = ParseState::AWAIT_START;
-            break;
-        }
-        case ParseState::PACKET_ERROR:
-        {
-            Debug.println("Packet error, resetting parser state");
-            parseState = ParseState::AWAIT_START;
-            break;
-        }
-        default:
-            parseState = ParseState::AWAIT_START;
-            break;
-        }
+inline void handleACK(PacketParserState& s, const uint8_t* buf, size_t len) {
+    if (s.payloadBytesRead == 0 && len > 0) {
+        request = s.msgID;
+        response = buf[0];
     }
+}
+
+inline void handleNAK(PacketParserState& s, const uint8_t* buf, size_t len) {
+    handleACK(s, buf, len); // same format
+}
+
+inline void handleMOVE(PacketParserState& s, const uint8_t* buf, size_t len) {
+    size_t copyLen = (s.payloadBytesRead + len <= ROW_SIZE)? len : (ROW_SIZE - s.payloadBytesRead);
+    memcpy(reinterpret_cast<uint8_t*>(MoveData) + s.payloadBytesRead, buf, copyLen);
+}
+
+inline void handleUPLOAD(PacketParserState& s, const uint8_t*, size_t) {
+    request = s.msgID;
+    arrayLength = s.payloadSize / ROW_SIZE; // number of rows
+}
+
+inline void handleSimple(PacketParserState& s, const uint8_t*, size_t) {
+    request = s.msgID;
+}
+
+// ---- Dispatch table ----
+static MsgHandler msgHandlers[MAX_MSG_ID + 1];
+
+inline void initMsgHandlers() {
+    // default
+    for (size_t i = 0; i <= MAX_MSG_ID; i++) {
+        msgHandlers[i] = handleSimple;
+    }
+
+    msgHandlers[msgID::ACK]    = handleACK;
+    msgHandlers[msgID::NAK]    = handleNAK;
+    msgHandlers[msgID::MOVE]   = handleMOVE;
+    msgHandlers[msgID::UPLOAD] = handleUPLOAD;
+}
+
+// ---- Core Parse Function ----
+inline void parsePacket(PacketParserState& s) {
+    RingBuffer& ring = *s.ringBuffer;
+
+    switch (s.state) {
+    case ParseState::AWAIT_START: {
+        if (ring.readBytesUntil(START_MARKER)) {
+            if (!ring.isEmpty()) {
+                initCRC(s);
+                updateCRC(s, START_MARKER);
+                s.state = ParseState::AWAIT_HEADER;
+                s.elapsedTime = 0;
+            }
+        }
+        break;
+    }
+
+    case ParseState::AWAIT_HEADER: {
+        if (ring.size() < HEADER_SIZE) return;
+
+        uint8_t headerBytes[HEADER_SIZE];
+        ring.readBytes(headerBytes, HEADER_SIZE);
+        updateCRC(s, headerBytes, HEADER_SIZE);
+
+        memcpy(&s.packetLength, &headerBytes[LEN_OFFSET], LEN_SIZE);
+        memcpy(&s.sequence, &headerBytes[SEQ_OFFSET], SEQ_SIZE);
+        s.fromID = headerBytes[FROM_OFFSET];
+        s.toID   = headerBytes[TO_OFFSET];
+        s.msgID  = headerBytes[MSG_ID_OFFSET];
+
+        s.payloadSize     = s.packetLength - PACKET_OVERHEAD;
+        s.payloadBytesRead = 0;
+
+        if ((PACKET_OVERHEAD > s.packetLength) || (s.packetLength > MAX_PACKET_SIZE)) {
+            s.state = ParseState::AWAIT_START;
+            return;
+        }
+
+        s.state = ParseState::AWAIT_PAYLOAD_CRC;
+        break;
+    }
+
+    case ParseState::AWAIT_PAYLOAD_CRC: {
+        size_t remaining = s.payloadSize - s.payloadBytesRead;
+
+        if (s.msgID == msgID::UPLOAD) {
+            size_t n = ring.readBytes(dataBuffer.bytes + s.payloadBytesRead, remaining);
+            if (n > 0) {
+                updateCRC(s, dataBuffer.bytes + s.payloadBytesRead, n);
+                s.payloadBytesRead += n;
+            }
+        } else {
+            size_t available = ring.size();
+            size_t toRead = (remaining < available) ? remaining : available;
+
+            if (toRead > 0) {
+                size_t n = ring.readBytes(s.tempBuffer, toRead);
+                if (n > TEMP_BUFFER_SIZE) n = TEMP_BUFFER_SIZE; // clamp
+                updateCRC(s, s.tempBuffer, n);
+
+                if (s.msgID <= MAX_MSG_ID) {
+                    MsgHandler handler = msgHandlers[s.msgID];
+                    if (handler) handler(s, s.tempBuffer, n);
+                }
+
+                s.payloadBytesRead += n;
+            }
+        }
+
+        if (s.payloadBytesRead == s.payloadSize && ring.size() >= CRC_SIZE) {
+            uint8_t crcBytes[CRC_SIZE];
+            ring.readBytes(crcBytes, CRC_SIZE);
+            memcpy(&s.crcExpected, crcBytes, CRC_SIZE);
+
+            if (s.msgID == msgID::UPLOAD) handleUPLOAD(s, nullptr, 0);
+
+            s.parsedPacket.sequence    = s.sequence;
+            s.parsedPacket.from        = s.fromID;
+            s.parsedPacket.to          = s.toID;
+            s.parsedPacket.length      = s.packetLength;
+            s.parsedPacket.msgID       = s.msgID;
+            s.parsedPacket.payloadSize = s.payloadSize;
+            s.parsedPacket.isValid     = (s.runningCRC == s.crcExpected);
+
+            s.state = ParseState::PACKET_COMPLETE;
+        }
+        break;
+    }
+
+    case ParseState::PACKET_COMPLETE: {
+        if (s.parsedPacket.isValid && s.packetCallback) {
+            s.packetCallback(s.parsedPacket);
+        }
+
+        logInfo(Serial,
+                "MsgID=%s | Length=%u bytes | Time=%lu us | Throughput=%.2f MB/s\n",
+                msgID_toStr(s.parsedPacket.msgID),
+                s.parsedPacket.length,
+                s.elapsedTime,
+                (s.parsedPacket.length * 1e6f) / (s.elapsedTime * 1024.0f * 1024.0f));
+
+        s.state = ParseState::AWAIT_START;
+        break;
+    }
+    }
+}
+
+struct PacketParser {
+    PacketParserState state;
+    PacketParser(RingBuffer& rb, void (*cb)(const PacketInfo&)=nullptr)
+        : state(rb)
+    {
+        state.packetCallback = cb;
+        initMsgHandlers();
+    }
+
+    void setCallback(void (*cb)(const PacketInfo&)) { state.packetCallback = cb; }
+    void parse() { parsePacket(state); }
+    PacketInfo& lastPacket() { return state.parsedPacket; }
 };
+
 #endif // PACKET_PARSER_H

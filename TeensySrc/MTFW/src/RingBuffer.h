@@ -1,22 +1,27 @@
 #ifndef RING_BUFFER
 #define RING_BUFFER
-#include <stddef.h>
-template <typename T, size_t SIZE>
+#include <stdint.h>
+#include <cstring>
+
 class RingBuffer
 {
 private:
-    T *buffer;
+    uint8_t *buffer;
+    size_t SIZE;
     size_t head;
     size_t tail;
     size_t count;
+
 public:
-    RingBuffer(T *externalBuffer) : buffer(externalBuffer), head(0), tail(0), count(0) {}
-    const T &operator[](size_t index) const
+    RingBuffer(uint8_t *externalBuffer, size_t size) : buffer(externalBuffer), SIZE(size), head(0), tail(0), count(0)
+    {
+    }
+    const uint8_t &operator[](size_t index) const
     {
         size_t ringIndex = (tail + index) % SIZE;
         return buffer[ringIndex];
     }
-    bool push(const T &item)
+    bool push(const uint8_t &item)
     {
         if (count < SIZE)
         {
@@ -27,7 +32,7 @@ public:
         }
         return false; // Buffer is full
     }
-    bool pop(T &item)
+    bool pop(uint8_t &item)
     {
         if (count > 0)
         {
@@ -36,22 +41,42 @@ public:
             count--;
             return true;
         }
-        return false; // Buffer is empty
+        return false;
     }
-    bool popUntil(const T &target)
+    bool readBytesUntil(const uint8_t &target)
     {
-        while (count > 0)
+        if (count == 0)
+            return false;
+
+        size_t firstChunk = (count < (SIZE - tail)) ? count : (SIZE - tail);
+        void *p = memchr(buffer + tail, target, firstChunk);
+
+        if (p)
         {
-            T currentItem = buffer[tail];
-            tail = (tail + 1) % SIZE;
-            count--;            
-            if (currentItem == target)
+            size_t offset = static_cast<uint8_t *>(p) - (buffer + tail);
+            tail = (tail + offset + 1) % SIZE;   // +1 to consume target
+            count -= (offset + 1);               // consume data + target
+            return true;
+        }
+
+        if (count > firstChunk)
+        {
+            size_t secondChunk = count - firstChunk;
+            p = memchr(buffer, target, secondChunk);
+
+            if (p)
             {
-                return true; // Found and removed target
+                size_t offset = static_cast<uint8_t *>(p) - buffer;
+                tail = (offset + 1) % SIZE;       // +1 to consume target
+                count -= (firstChunk + offset + 1);
+                return true;
             }
         }
-        return false; // Target not found
+        tail = (tail + count) % SIZE;
+        count = 0;
+        return false;
     }
+
     size_t size() const
     {
         return count;
@@ -71,13 +96,13 @@ public:
         size_t toRead = (n < count) ? n : count;
         size_t tailToEnd = SIZE - tail;
         size_t chunk1 = (toRead < tailToEnd) ? toRead : tailToEnd;
-        memcpy(dest, &buffer[tail], chunk1 * sizeof(T));
+        memcpy(dest, &buffer[tail], chunk1);
         tail = (tail + chunk1) % SIZE;
         count -= chunk1;
         if (chunk1 == toRead)
             return chunk1;
         size_t chunk2 = toRead - chunk1;
-        memcpy(dest + chunk1, &buffer[tail], chunk2 * sizeof(T));
+        memcpy(dest + chunk1, &buffer[tail], chunk2);
         tail = (tail + chunk2) % SIZE;
         count -= chunk2;
         return chunk1 + chunk2;
@@ -92,13 +117,13 @@ public:
         size_t toWrite = (n < space) ? n : space;
         size_t headToEnd = SIZE - head;
         size_t chunk1 = (toWrite < headToEnd) ? toWrite : headToEnd;
-        memcpy(&buffer[head], src, chunk1 * sizeof(T));
+        memcpy(&buffer[head], src, chunk1);
         head = (head + chunk1) % SIZE;
         count += chunk1;
         if (chunk1 == toWrite)
             return chunk1;
         size_t chunk2 = toWrite - chunk1;
-        memcpy(&buffer[head], src + chunk1, chunk2 * sizeof(T));
+        memcpy(&buffer[head], src + chunk1, chunk2);
         head = (head + chunk2) % SIZE;
         count += chunk2;
         return chunk1 + chunk2;
@@ -124,7 +149,5 @@ public:
         head = (head + n2) % SIZE;
         return n1 + n2;
     }
-
-
 };
-#endif // RING_BUFFER
+#endif // RING_BUFFER_H

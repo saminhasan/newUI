@@ -1,24 +1,30 @@
-/**
-  ******************************************************************************
-  * @file    motctrl_prot.h
-  * @author  LYH, CyberBeast
-  * @brief   This file provides protocol implementation for CyberBeast motor control
-  *
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2022 CyberBeast.
-  * All rights reserved.</center></h2>
-  *
-  ******************************************************************************
-  *
-  */
 #ifndef _MOTCTRL_PROT_H__
 #define _MOTCTRL_PROT_H__
+#define MOTCTRL_FRAME_SIZE 8
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MOTCTRL_FRAME_SIZE 8
+
+
+typedef enum {
+  MOTCTRL_CMD_RESET_CONFIGURATION = 0x81,
+  MOTCTRL_CMD_REFRESH_CONFIGURATION = 0x82,
+  MOTCTRL_CMD_MODIFY_CONFIGURATION = 0x83,
+  MOTCTRL_CMD_RETRIEVE_CONFIGURATION = 0x84,
+  MOTCTRL_CMD_START_MOTOR = 0x91,
+  MOTCTRL_CMD_STOP_MOTOR = 0x92,
+  MOTCTRL_CMD_TORQUE_CONTROL = 0x93,
+  MOTCTRL_CMD_SPEED_CONTROL = 0x94,
+  MOTCTRL_CMD_POSITION_CONTROL = 0x95,
+  MOTCTRL_CMD_PTS_CONTROL = 0x96,
+  MOTCTRL_CMD_STOP_CONTROL = 0x97,
+  MOTCTRL_CMD_MODIFY_PARAMETER = 0xA1,
+  MOTCTRL_CMD_RETRIEVE_PARAMETER = 0xA2,
+  MOTCTRL_CMD_GET_VERSION = 0xB1,
+  MOTCTRL_CMD_GET_FAULT = 0xB2,
+  MOTCTRL_CMD_ACK_FAULT = 0xB3,
+  MOTCTRL_CMD_RETRIEVE_INDICATOR = 0xB4,
+} MOTCTRL_CMD;
 
 /**
  * command execution result
@@ -256,7 +262,7 @@ MOTCTRL_RES MCResTorqueControl(uint8_t * resBuf, int8_t * temp, float * position
 /**
  * @brief encapsulate speed control command message
  * @param reqBuf command message buffer
- * @param speed in RPM
+ * @param speed in RAD/s
  * @param duration in ms
 */
 void MCReqSpeedControl(uint8_t * reqBuf, float speed, uint32_t duration);
@@ -287,6 +293,20 @@ void MCReqPositionControl(uint8_t * reqBuf, float position, uint32_t duration);
  * @return result of the command execution
 */
 MOTCTRL_RES MCResPositionControl(uint8_t * resBuf, int8_t * temp, float * position, float * speed, float * torque);
+
+
+
+/**
+ * @brief Unpack a motor control response message (position/speed/torque control)
+ * @param resBuf  Response message buffer (raw bytes from controller)
+ * @param temp    Current temperature
+ * @param position Current position in RAD for output shaft
+ * @param speed    Current speed in RAD/s for output shaft
+ * @param torque   Current torque in Amper; multiply by torque constant and gear ratio to get N·m at output shaft
+ * @return Result of the command execution (MOTCTRL_RES_OK or MOTCTRL_RES_FAIL)
+ */
+MOTCTRL_RES MCResControl(uint8_t *resBuf, int8_t *temp, float *position, float *speed, float *torque);
+
 
 /**
  * @brief stop current control process
@@ -387,5 +407,5 @@ void SendCmd2Motor(uint8_t * buf);
 
 void ReceiveResFromMotor(uint8_t * buf);
 
-#endif
+#endif // MOTCTRL_PROT_H
 
