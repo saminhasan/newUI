@@ -9,6 +9,7 @@
 template <typename StreamType>
 void sendPacket(StreamType& serial, uint32_t payloadLen, uint32_t seq, uint8_t toID, uint8_t msgID, const uint8_t* payload)
 {   
+    noInterrupts();
     // make a header struct so that so much memcpy can be avoided
     FastCRC32 crc32;
     uint32_t index, crc, packetLen;
@@ -29,6 +30,7 @@ void sendPacket(StreamType& serial, uint32_t payloadLen, uint32_t seq, uint8_t t
     crc = crc32.crc32(sendBuffer, index);
     memcpy(&sendBuffer[index], &crc, sizeof(crc)); index += sizeof(crc);
     serial.write(sendBuffer, index);
+    interrupts();
 }
 
 template <typename StreamType>
