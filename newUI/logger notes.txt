@@ -1,0 +1,34 @@
+
+# main.py
+import logging
+
+FMT = "%(asctime)s-%(msecs)03d %(levelname)s %(name)s %(funcName)s %(message)s"
+DATEFMT = "%Y-%m-%d-%H-%M-%S"
+
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter(FMT, DATEFMT))
+
+root = logging.getLogger()
+root.setLevel(logging.INFO)
+root.addHandler(handler)
+
+# import your code AFTER logging setup
+import worker  
+
+w = worker.Worker()
+w.do_work()
+
+
+import logging
+
+class Worker:
+    def __init__(self):
+        # logger named after the class
+        self.log = logging.getLogger(self.__class__.__name__)
+
+    def do_work(self):
+        self.log.info("running")
+        try:
+            1/0
+        except Exception:
+            self.log.exception("boom")

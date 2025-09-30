@@ -1,0 +1,25 @@
+Build-flag               | Description (as in Arduino IDE)
+-------------------------|--------------------------
+USB_SERIAL               | Serial           
+USB_DUAL_SERIAL          | Dual Serial   
+USB_TRIPLE_SERIAL        | Triple Serial  
+USB_KEYBOARDONLY         | Keyboard
+USB_TOUCHSCREEN          | Keyboard + Touch Screen
+USB_HID_TOUCHSCREEN      | Keyboard + Mouse + Touch Screen
+USB_HID                  | Keyboard + Mouse + Joystick
+USB_SERIAL_HID           | Serial + Keyboard + Mouse + Joystick
+USB_MIDI                 | MIDI
+USB_MIDI4                | MIDIx4
+USB_MIDI16               | MIDIx16
+USB_MIDI_SERIAL          | Serial + MIDI
+USB_MIDI4_SERIAL         | Serial + MIDIx4
+USB_MIDI16_SERIAL        | Serial + MIDIx16
+USB_AUDIO                | Audio
+USB_MIDI_AUDIO_SERIAL    | Serial + MIDI + Audio
+USB_MIDI16_AUDIO_SERIAL  | Serial + MIDIx16 + Audio
+USB_MTPDISK              | MTP Disk (Experimental)
+USB_RAWHID               | Raw HID
+USB_FLIGHTSIM            | Flight Sim Controls
+USB_FLIGHTSIM_JOYSTICK   | Flight Sim Controls + Joystick
+USB_EVERYTHING           | All of the Above (only available @ teensy 3.1 3.5 3.6)
+USB_DISABLED             | No USB

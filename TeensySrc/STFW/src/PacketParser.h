@@ -1,0 +1,287 @@
+#ifndef PACKET_PARSER_H
+#define PACKET_PARSER_H
+
+#include <stdint.h>
+#include <cstring>
+#include <FastCRC.h>
+#include "constants.h"
+#include "globals.h"
+#include "RingBuffer.h"
+#include "messages.h"
+
+enum class ParseState
+{
+    AWAIT_START,
+    AWAIT_HEADER,
+    AWAIT_PAYLOAD_CRC,
+    PACKET_COMPLETE
+};
+
+struct PacketInfo
+{
+    uint32_t length;
+    uint32_t sequence;
+    size_t payloadSize;
+    uint8_t from;
+    uint8_t to;
+    uint8_t msgID;
+    bool isValid;
+
+    PacketInfo() : length(0),
+                   sequence(0),
+                   payloadSize(0),
+                   from(0),
+                   to(0),
+                   msgID(0),
+                   isValid(false)
+    {
+    }
+};
+struct PacketParserState
+{
+    // 4-byte fields first
+    ParseState state; // enum class → 4 bytes
+    FastCRC32 crc32;  // class, 4-byte aligned
+    uint32_t runningCRC;
+    uint32_t packetLength;
+    uint32_t sequence;
+    uint32_t crcExpected;
+    size_t payloadSize;        // 4 bytes
+    size_t payloadBytesRead;   // 4 bytes
+    elapsedMicros elapsedTime; // wrapper around uint32_t
+    PacketInfo parsedPacket;   // already well-packed
+
+    // pointers (4 bytes each)
+    RingBuffer *ringBuffer;
+    void (*packetCallback)(const PacketInfo &);
+
+    // small scalars grouped;
+    uint8_t fromID;
+    uint8_t toID;
+    uint8_t msgID;
+    bool crcInitialized;
+
+    // big buffer last
+    uint8_t tempBuffer[TEMP_BUFFER_SIZE];
+
+    // Constructor: order matches declaration order
+    PacketParserState(RingBuffer &rb)
+        : state(ParseState::AWAIT_START),
+          crc32(),
+          runningCRC(0),
+          packetLength(0),
+          sequence(0),
+          crcExpected(0),
+          payloadSize(0),
+          payloadBytesRead(0),
+          elapsedTime(0),
+          parsedPacket(),
+          ringBuffer(&rb),
+          packetCallback(nullptr),
+          fromID(0),
+          toID(0),
+          msgID(0),
+          crcInitialized(false)
+    {
+    }
+};
+
+// ---- CRC helpers ----
+inline void initCRC(PacketParserState &s)
+{
+    s.runningCRC = 0;
+    s.crcInitialized = false;
+}
+
+inline void updateCRC(PacketParserState &s, const uint8_t *data, size_t len)
+{
+    if (!s.crcInitialized)
+    {
+        s.runningCRC = s.crc32.crc32(data, len);
+        s.crcInitialized = true;
+    }
+    else
+    {
+        s.runningCRC = s.crc32.crc32_upd(data, len);
+    }
+}
+
+inline void updateCRC(PacketParserState &s, uint8_t b)
+{
+    updateCRC(s, &b, 1);
+}
+
+// ---- Payload handlers ----
+typedef void (*MsgHandler)(PacketParserState &, const uint8_t *, size_t);
+
+inline void handleACK(PacketParserState &s, const uint8_t *buf, size_t len)
+{
+    if (s.payloadBytesRead == 0 && len > 0)
+    {
+        request = s.msgID;
+        response = buf[0];
+    }
+}
+
+inline void handleNAK(PacketParserState &s, const uint8_t *buf, size_t len)
+{
+    handleACK(s, buf, len); // same format
+}
+
+inline void handleMOVE(PacketParserState &s, const uint8_t *buf, size_t len)
+{
+    size_t copyLen = (s.payloadBytesRead + len <= ROW_SIZE) ? len : (ROW_SIZE - s.payloadBytesRead);
+    memcpy(reinterpret_cast<uint8_t *>(MoveData) + s.payloadBytesRead, buf, copyLen);
+}
+
+
+inline void handleSimple(PacketParserState &s, const uint8_t *, size_t)
+{
+    request = s.msgID;
+}
+
+// ---- Dispatch table ----
+static MsgHandler msgHandlers[MAX_MSG_ID + 1];
+
+inline void initMsgHandlers()
+{
+    // default
+    for (size_t i = 0; i <= MAX_MSG_ID; i++)
+    {
+        msgHandlers[i] = handleSimple;
+    }
+
+    msgHandlers[msgID::ACK] = handleACK;
+    msgHandlers[msgID::NAK] = handleNAK;
+    msgHandlers[msgID::MOVE] = handleMOVE;
+}
+
+// ---- Core Parse Function ----
+inline void parsePacket(PacketParserState &s)
+{
+    RingBuffer &ring = *s.ringBuffer;
+
+    switch (s.state)
+    {
+    case ParseState::AWAIT_START:
+    {
+        if (ring.readBytesUntil(START_MARKER))
+        {
+            if (!ring.isEmpty())
+            {
+                initCRC(s);
+                updateCRC(s, START_MARKER);
+                s.state = ParseState::AWAIT_HEADER;
+                s.elapsedTime = 0;
+            }
+        }
+        break;
+    }
+
+    case ParseState::AWAIT_HEADER:
+    {
+        if (ring.size() < HEADER_SIZE)
+            return;
+
+        uint8_t headerBytes[HEADER_SIZE];
+        ring.readBytes(headerBytes, HEADER_SIZE);
+        updateCRC(s, headerBytes, HEADER_SIZE);
+
+        memcpy(&s.packetLength, &headerBytes[LEN_OFFSET], LEN_SIZE);
+        memcpy(&s.sequence, &headerBytes[SEQ_OFFSET], SEQ_SIZE);
+        s.fromID = headerBytes[FROM_OFFSET];
+        s.toID = headerBytes[TO_OFFSET];
+        s.msgID = headerBytes[MSG_ID_OFFSET];
+
+        s.payloadSize = s.packetLength - PACKET_OVERHEAD;
+        s.payloadBytesRead = 0;
+
+        if ((PACKET_OVERHEAD > s.packetLength) || (s.packetLength > MAX_PACKET_SIZE))
+        {
+            s.state = ParseState::AWAIT_START;
+            return;
+        }
+
+        s.state = ParseState::AWAIT_PAYLOAD_CRC;
+        break;
+    }
+
+    case ParseState::AWAIT_PAYLOAD_CRC:
+    {
+        size_t remaining = s.payloadSize - s.payloadBytesRead;
+
+        size_t available = ring.size();
+        size_t toRead = (remaining < available) ? remaining : available;
+
+        if (toRead > 0)
+        {
+            size_t n = ring.readBytes(s.tempBuffer, toRead);
+            if (n > TEMP_BUFFER_SIZE)
+                n = TEMP_BUFFER_SIZE; // clamp
+            updateCRC(s, s.tempBuffer, n);
+
+            if (s.msgID <= MAX_MSG_ID)
+            {
+                MsgHandler handler = msgHandlers[s.msgID];
+                if (handler)
+                    handler(s, s.tempBuffer, n);
+            }
+
+            s.payloadBytesRead += n;
+        }
+
+        if (s.payloadBytesRead == s.payloadSize && ring.size() >= CRC_SIZE)
+        {
+            uint8_t crcBytes[CRC_SIZE];
+            ring.readBytes(crcBytes, CRC_SIZE);
+            memcpy(&s.crcExpected, crcBytes, CRC_SIZE);
+
+
+            s.parsedPacket.sequence = s.sequence;
+            s.parsedPacket.from = s.fromID;
+            s.parsedPacket.to = s.toID;
+            s.parsedPacket.length = s.packetLength;
+            s.parsedPacket.msgID = s.msgID;
+            s.parsedPacket.payloadSize = s.payloadSize;
+            s.parsedPacket.isValid = (s.runningCRC == s.crcExpected);
+
+            s.state = ParseState::PACKET_COMPLETE;
+        }
+        break;
+    }
+
+    case ParseState::PACKET_COMPLETE:
+    {
+        if (s.parsedPacket.isValid && s.packetCallback)
+        {
+            s.packetCallback(s.parsedPacket);
+        }
+
+        logInfo(Serial,
+                "MsgID=%s | Length=%u bytes | Time=%lu us \n",
+                msgID_toStr(s.parsedPacket.msgID),
+                s.parsedPacket.length,
+                s.elapsedTime);
+
+        s.state = ParseState::AWAIT_START;
+        break;
+    }
+    }
+}
+
+struct PacketParser
+{
+    PacketParserState state;
+    PacketParser(RingBuffer &rb, void (*cb)(const PacketInfo &) = nullptr)
+        : state(rb)
+    {
+        state.packetCallback = cb;
+        initMsgHandlers();
+    }
+
+    void setCallback(void (*cb)(const PacketInfo &)) { state.packetCallback = cb; }
+    void parse() { parsePacket(state); }
+    PacketInfo &lastPacket() { return state.parsedPacket; }
+};
+
+#endif // PACKET_PARSER_H
